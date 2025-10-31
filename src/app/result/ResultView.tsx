@@ -6,7 +6,15 @@ import { Section } from '@/components/ui/Section';
 import { Card, CardBody } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
-import { Compass, Brain, Heart, Calendar, BookOpen, BadgeCheck, Loader2 } from 'lucide-react';
+import {
+    Compass,
+    Brain,
+    Heart,
+    Calendar,
+    BookOpen,
+    BadgeCheck,
+    Loader2,
+} from 'lucide-react';
 
 export default function ResultView({
     initialSessionId,
@@ -79,7 +87,8 @@ export default function ResultView({
                         <CardBody>
                             {loading && (
                                 <div className="flex items-center gap-2 text-sm text-black/60 dark:text-white/60">
-                                    <Loader2 className="h-4 w-4 animate-spin" /> 読み込み中...
+                                    <Loader2 className="h-4 w-4 animate-spin" />{' '}
+                                    読み込み中...
                                 </div>
                             )}
                             {error && (

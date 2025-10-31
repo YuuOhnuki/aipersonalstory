@@ -108,14 +108,18 @@ async function getPool() {
                 throw e;
             });
         // Best-effort add columns on existing DBs
-        await pool.query(`DO $$ BEGIN
+        await pool
+            .query(
+                `DO $$ BEGIN
           BEGIN
             ALTER TABLE mbti_result ADD COLUMN IF NOT EXISTS result_id TEXT UNIQUE;
           EXCEPTION WHEN others THEN END;
           BEGIN
             ALTER TABLE detail_result ADD COLUMN IF NOT EXISTS result_id TEXT UNIQUE;
           EXCEPTION WHEN others THEN END;
-        END $$;`).catch(() => {});
+        END $$;`
+            )
+            .catch(() => {});
     } catch (e) {
         console.warn('Postgres unavailable:', e);
         pool = null;
@@ -264,37 +268,55 @@ export async function dbSaveDetailResult(
 export async function dbGetMbtiResult(sessionId: string) {
     const p = await getPool();
     if (!p) return null;
-    const { rows } = await p.query(`SELECT * FROM mbti_result WHERE session_id = $1`, [sessionId]);
+    const { rows } = await p.query(
+        `SELECT * FROM mbti_result WHERE session_id = $1`,
+        [sessionId]
+    );
     return rows[0] || null;
 }
 
 export async function dbGetMbtiResultById(resultId: string) {
     const p = await getPool();
     if (!p) return null;
-    const { rows } = await p.query(`SELECT * FROM mbti_result WHERE result_id = $1`, [resultId]);
+    const { rows } = await p.query(
+        `SELECT * FROM mbti_result WHERE result_id = $1`,
+        [resultId]
+    );
     return rows[0] || null;
 }
 
 export async function dbGetMbtiResultByAny(idOrSession: string) {
-    return (await dbGetMbtiResultById(idOrSession)) || (await dbGetMbtiResult(idOrSession));
+    return (
+        (await dbGetMbtiResultById(idOrSession)) ||
+        (await dbGetMbtiResult(idOrSession))
+    );
 }
 
 export async function dbGetDetailResult(sessionId: string) {
     const p = await getPool();
     if (!p) return null;
-    const { rows } = await p.query(`SELECT * FROM detail_result WHERE session_id = $1`, [sessionId]);
+    const { rows } = await p.query(
+        `SELECT * FROM detail_result WHERE session_id = $1`,
+        [sessionId]
+    );
     return rows[0] || null;
 }
 
 export async function dbGetDetailResultById(resultId: string) {
     const p = await getPool();
     if (!p) return null;
-    const { rows } = await p.query(`SELECT * FROM detail_result WHERE result_id = $1`, [resultId]);
+    const { rows } = await p.query(
+        `SELECT * FROM detail_result WHERE result_id = $1`,
+        [resultId]
+    );
     return rows[0] || null;
 }
 
 export async function dbGetDetailResultByAny(idOrSession: string) {
-    return (await dbGetDetailResultById(idOrSession)) || (await dbGetDetailResult(idOrSession));
+    return (
+        (await dbGetDetailResultById(idOrSession)) ||
+        (await dbGetDetailResult(idOrSession))
+    );
 }
 
 export async function dbListMbtiResults(limit = 20) {

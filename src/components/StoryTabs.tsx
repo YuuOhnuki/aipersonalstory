@@ -41,10 +41,16 @@ export default function StoryTabs() {
             </div>
             <Card>
                 <CardBody>
-                    <div key={`title-${active}`} className="text-xs text-black/60 dark:text-white/60 mb-2 animate-slide-left">
+                    <div
+                        key={`title-${active}`}
+                        className="text-xs text-black/60 dark:text-white/60 mb-2 animate-slide-left"
+                    >
                         例）{active} / {s.title}
                     </div>
-                    <div key={`body-${active}`} className="text-sm leading-7 animate-fade-in">
+                    <div
+                        key={`body-${active}`}
+                        className="text-sm leading-7 animate-fade-in"
+                    >
                         {s.body}
                     </div>
                 </CardBody>

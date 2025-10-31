@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import ResultView from '../ResultView';
-import { dbGetMbtiResultByAny } from "@/server/db";
+import { dbGetMbtiResultByAny } from '@/server/db';
 import { redirect } from 'next/navigation';
 import { Section } from '@/components/ui/Section';
 import { Card, CardBody } from '@/components/ui/Card';
@@ -49,11 +49,21 @@ export default async function ResultSessionPage({
                         <Card>
                             <CardBody>
                                 <div className="space-y-3">
-                                    <div className="text-base font-semibold">結果がまだありません</div>
-                                    <div className="text-sm text-black/70 dark:text-white/70">簡易診断または詳細診断を実行して、結果を生成してください。</div>
+                                    <div className="text-base font-semibold">
+                                        結果がまだありません
+                                    </div>
+                                    <div className="text-sm text-black/70 dark:text-white/70">
+                                        簡易診断または詳細診断を実行して、結果を生成してください。
+                                    </div>
                                     <div className="flex gap-2 pt-2">
-                                        <Link href="/chat"><Button>簡易診断を始める</Button></Link>
-                                        <Link href="/detail/take"><Button variant="secondary">詳細診断を始める</Button></Link>
+                                        <Link href="/chat">
+                                            <Button>簡易診断を始める</Button>
+                                        </Link>
+                                        <Link href="/detail/take">
+                                            <Button variant="secondary">
+                                                詳細診断を始める
+                                            </Button>
+                                        </Link>
                                     </div>
                                 </div>
                             </CardBody>

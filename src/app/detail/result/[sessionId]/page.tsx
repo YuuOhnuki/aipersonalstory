@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { dbGetDetailResultByAny } from "@/server/db";
+import { dbGetDetailResultByAny } from '@/server/db';
 import { Section } from '@/components/ui/Section';
 import { Card, CardBody } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';

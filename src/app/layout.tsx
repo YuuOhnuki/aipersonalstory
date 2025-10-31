@@ -34,14 +34,22 @@ export const metadata: Metadata = {
         url: siteUrl,
         siteName: 'AI Personality Story',
         title: 'AI Personality Story',
-        description: '会話からMBTIを推定し、あなたの物語を生成する対話型Webアプリ',
-        images: [{ url: '/api/image/avatar?type=INFP&title=AI%20Personality%20Story', width: 800, height: 800 }],
+        description:
+            '会話からMBTIを推定し、あなたの物語を生成する対話型Webアプリ',
+        images: [
+            {
+                url: '/api/image/avatar?type=INFP&title=AI%20Personality%20Story',
+                width: 800,
+                height: 800,
+            },
+        ],
         locale: 'ja_JP',
     },
     twitter: {
         card: 'summary_large_image',
         title: 'AI Personality Story',
-        description: '会話からMBTIを推定し、あなたの物語を生成する対話型Webアプリ',
+        description:
+            '会話からMBTIを推定し、あなたの物語を生成する対話型Webアプリ',
         images: ['/api/image/avatar?type=INFP&title=AI%20Personality%20Story'],
     },
     icons: {
@@ -69,7 +77,9 @@ export default function RootLayout({
             >
                 <LiquidBackground />
                 <NavBar />
-                <main className="mx-auto max-w-6xl px-4 animate-fade-in">{children}</main>
+                <main className="mx-auto max-w-6xl px-4 animate-fade-in">
+                    {children}
+                </main>
                 <Footer />
                 <ConsentBanner />
                 <Analytics />

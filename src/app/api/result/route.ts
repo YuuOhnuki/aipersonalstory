@@ -3,7 +3,7 @@ import { getSession } from '@/server/store';
 import { generateText } from '@/server/llm';
 import { parseAxes, toResult, toType } from '@/server/mbti';
 import type { MBTIMap } from '@/types/mbti';
-import { dbSaveMbtiResult, dbGetMbtiResult } from "@/server/db";
+import { dbSaveMbtiResult, dbGetMbtiResult } from '@/server/db';
 import { randomUUID } from 'crypto';
 
 export const runtime = 'nodejs';

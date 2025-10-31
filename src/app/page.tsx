@@ -10,7 +10,10 @@ export default function Home() {
     return (
         <div className="pb-20">
             <Section className="pt-20">
-                <InView effect="slide-up" className="mx-auto max-w-3xl text-center space-y-6">
+                <InView
+                    effect="slide-up"
+                    className="mx-auto max-w-3xl text-center space-y-6"
+                >
                     <h1 className="text-4xl md:text-5xl font-semibold tracking-tight">
                         性格タイプが、
                         <span className="bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-rose-500 bg-clip-text text-transparent">
@@ -35,39 +38,41 @@ export default function Home() {
             </Section>
             <Section id="features">
                 <InView effect="slide-left">
-                <div className="grid md:grid-cols-3 gap-6 stagger-sm">
-                    <Card>
-                        <CardBody>
-                            <h3 className="font-semibold mb-2 flex items-center gap-2">
-                                <MessageSquare className="h-4 w-4" /> 会話で診断
-                            </h3>
-                            <p className="text-sm text-black/70 dark:text-white/70">
-                                MBTIの4軸ごとに1問ずつ。最大5往復で完了。
-                            </p>
-                        </CardBody>
-                    </Card>
-                    <Card>
-                        <CardBody>
-                            <h3 className="font-semibold mb-2 flex items-center gap-2">
-                                <Brain className="h-4 w-4" /> タイプ推定
-                            </h3>
-                            <p className="text-sm text-black/70 dark:text-white/70">
-                                会話からE/I, S/N, T/F,
-                                J/Pを推定し、タイプを算出。
-                            </p>
-                        </CardBody>
-                    </Card>
-                    <Card>
-                        <CardBody>
-                            <h3 className="font-semibold mb-2 flex items-center gap-2">
-                                <BookOpenText className="h-4 w-4" /> 物語生成
-                            </h3>
-                            <p className="text-sm text-black/70 dark:text-white/70">
-                                あなたのタイプに合わせた400〜600文字の短編を生成。
-                            </p>
-                        </CardBody>
-                    </Card>
-                </div>
+                    <div className="grid md:grid-cols-3 gap-6 stagger-sm">
+                        <Card>
+                            <CardBody>
+                                <h3 className="font-semibold mb-2 flex items-center gap-2">
+                                    <MessageSquare className="h-4 w-4" />{' '}
+                                    会話で診断
+                                </h3>
+                                <p className="text-sm text-black/70 dark:text-white/70">
+                                    MBTIの4軸ごとに1問ずつ。最大5往復で完了。
+                                </p>
+                            </CardBody>
+                        </Card>
+                        <Card>
+                            <CardBody>
+                                <h3 className="font-semibold mb-2 flex items-center gap-2">
+                                    <Brain className="h-4 w-4" /> タイプ推定
+                                </h3>
+                                <p className="text-sm text-black/70 dark:text-white/70">
+                                    会話からE/I, S/N, T/F,
+                                    J/Pを推定し、タイプを算出。
+                                </p>
+                            </CardBody>
+                        </Card>
+                        <Card>
+                            <CardBody>
+                                <h3 className="font-semibold mb-2 flex items-center gap-2">
+                                    <BookOpenText className="h-4 w-4" />{' '}
+                                    物語生成
+                                </h3>
+                                <p className="text-sm text-black/70 dark:text-white/70">
+                                    あなたのタイプに合わせた400〜600文字の短編を生成。
+                                </p>
+                            </CardBody>
+                        </Card>
+                    </div>
                 </InView>
             </Section>
             <Section id="examples">
@@ -220,7 +225,10 @@ export default function Home() {
                 </InView>
             </Section>
             <Section>
-                <InView effect="slide-up" className="mx-auto max-w-3xl text-center space-y-4">
+                <InView
+                    effect="slide-up"
+                    className="mx-auto max-w-3xl text-center space-y-4"
+                >
                     <h2 className="text-xl md:text-2xl font-semibold">
                         さっそく、あなたの物語を。
                     </h2>
