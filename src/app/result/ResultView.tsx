@@ -39,11 +39,15 @@ export default function ResultView({
     useEffect(() => {
         if (!sessionId) return;
         setLoading(true);
-        api.getResult(sessionId)
+        fetch(`/api/result/${encodeURIComponent(sessionId)}`)
+            .then(async (r) => {
+                if (!r.ok) throw new Error(String(r.status));
+                return r.json();
+            })
             .then(setResult)
             .catch(() =>
                 setError(
-                    '結果の取得に失敗しました。時間をおいて再度お試しください。'
+                    '結果が見つかりませんでした。チャットまたは詳細診断をお試しください。'
                 )
             )
             .finally(() => setLoading(false));

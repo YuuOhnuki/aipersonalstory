@@ -86,7 +86,7 @@ export default function HistoryPage() {
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Link
-                                                    href={`/result/${encodeURIComponent(r.session_id)}`}
+                                                    href={`/result/${encodeURIComponent((r as any).result_id || r.session_id)}`}
                                                 >
                                                     <Button size="sm">
                                                         開く
@@ -134,7 +134,7 @@ export default function HistoryPage() {
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Link
-                                                    href={`/detail/result/${encodeURIComponent(r.session_id)}`}
+                                                    href={`/detail/result/${encodeURIComponent((r as any).result_id || r.session_id)}`}
                                                 >
                                                     <Button size="sm">
                                                         開く

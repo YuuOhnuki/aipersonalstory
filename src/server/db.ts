@@ -66,6 +66,7 @@ async function getPool() {
       );
       CREATE TABLE IF NOT EXISTS mbti_result (
         session_id TEXT PRIMARY KEY REFERENCES user_session(id),
+        result_id TEXT UNIQUE,
         e_i TEXT,
         s_n TEXT,
         t_f TEXT,
@@ -83,6 +84,7 @@ async function getPool() {
       );
       CREATE TABLE IF NOT EXISTS detail_result (
         session_id TEXT PRIMARY KEY REFERENCES user_session(id),
+        result_id TEXT UNIQUE,
         mbti_type TEXT,
         openness REAL,
         conscientiousness REAL,
@@ -105,6 +107,15 @@ async function getPool() {
                 console.warn('[db] Schema init failed:', e);
                 throw e;
             });
+        // Best-effort add columns on existing DBs
+        await pool.query(`DO $$ BEGIN
+          BEGIN
+            ALTER TABLE mbti_result ADD COLUMN IF NOT EXISTS result_id TEXT UNIQUE;
+          EXCEPTION WHEN others THEN END;
+          BEGIN
+            ALTER TABLE detail_result ADD COLUMN IF NOT EXISTS result_id TEXT UNIQUE;
+          EXCEPTION WHEN others THEN END;
+        END $$;`).catch(() => {});
     } catch (e) {
         console.warn('Postgres unavailable:', e);
         pool = null;
@@ -144,20 +155,23 @@ export async function dbSaveMbtiResult(
         advice?: string;
         avatar_url?: string;
         scene_url?: string;
+        result_id?: string;
     }
 ) {
     const p = await getPool();
     if (!p) return;
     await p.query(
-        `INSERT INTO mbti_result (session_id, e_i, s_n, t_f, j_p, type, title, summary, story, features, reasons, advice, avatar_url, scene_url, created_at)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+        `INSERT INTO mbti_result (session_id, result_id, e_i, s_n, t_f, j_p, type, title, summary, story, features, reasons, advice, avatar_url, scene_url, created_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
      ON CONFLICT (session_id) DO UPDATE SET
+       result_id = COALESCE(mbti_result.result_id, EXCLUDED.result_id),
        e_i = EXCLUDED.e_i, s_n = EXCLUDED.s_n, t_f = EXCLUDED.t_f, j_p = EXCLUDED.j_p,
        type = EXCLUDED.type, title = EXCLUDED.title, summary = EXCLUDED.summary, story = EXCLUDED.story,
        features = EXCLUDED.features, reasons = EXCLUDED.reasons, advice = EXCLUDED.advice,
        avatar_url = EXCLUDED.avatar_url, scene_url = EXCLUDED.scene_url, created_at = EXCLUDED.created_at`,
         [
             sessionId,
+            extras?.result_id ?? null,
             axes['E/I'],
             axes['S/N'],
             axes['T/F'],
@@ -197,16 +211,18 @@ export async function dbSaveDetailResult(
         advice?: string;
         avatar_url?: string;
         scene_url?: string;
+        result_id?: string;
     }
 ) {
     const p = await getPool();
     if (!p) return;
     await p.query(
         `INSERT INTO detail_result (
-      session_id, mbti_type, openness, conscientiousness, extraversion, agreeableness, neuroticism,
+      session_id, result_id, mbti_type, openness, conscientiousness, extraversion, agreeableness, neuroticism,
       stressTolerance, adaptability, valueFlexibility, summaryText, story, advice, avatar_url, scene_url, created_at
-    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
     ON CONFLICT (session_id) DO UPDATE SET
+      result_id = COALESCE(detail_result.result_id, EXCLUDED.result_id),
       mbti_type = EXCLUDED.mbti_type,
       openness = EXCLUDED.openness,
       conscientiousness = EXCLUDED.conscientiousness,
@@ -225,6 +241,7 @@ export async function dbSaveDetailResult(
     `,
         [
             sessionId,
+            payload.result_id ?? null,
             payload.mbti_type,
             payload.bigFive.openness,
             payload.bigFive.conscientiousness,
@@ -247,21 +264,37 @@ export async function dbSaveDetailResult(
 export async function dbGetMbtiResult(sessionId: string) {
     const p = await getPool();
     if (!p) return null;
-    const { rows } = await p.query(
-        `SELECT * FROM mbti_result WHERE session_id = $1`,
-        [sessionId]
-    );
+    const { rows } = await p.query(`SELECT * FROM mbti_result WHERE session_id = $1`, [sessionId]);
     return rows[0] || null;
+}
+
+export async function dbGetMbtiResultById(resultId: string) {
+    const p = await getPool();
+    if (!p) return null;
+    const { rows } = await p.query(`SELECT * FROM mbti_result WHERE result_id = $1`, [resultId]);
+    return rows[0] || null;
+}
+
+export async function dbGetMbtiResultByAny(idOrSession: string) {
+    return (await dbGetMbtiResultById(idOrSession)) || (await dbGetMbtiResult(idOrSession));
 }
 
 export async function dbGetDetailResult(sessionId: string) {
     const p = await getPool();
     if (!p) return null;
-    const { rows } = await p.query(
-        `SELECT * FROM detail_result WHERE session_id = $1`,
-        [sessionId]
-    );
+    const { rows } = await p.query(`SELECT * FROM detail_result WHERE session_id = $1`, [sessionId]);
     return rows[0] || null;
+}
+
+export async function dbGetDetailResultById(resultId: string) {
+    const p = await getPool();
+    if (!p) return null;
+    const { rows } = await p.query(`SELECT * FROM detail_result WHERE result_id = $1`, [resultId]);
+    return rows[0] || null;
+}
+
+export async function dbGetDetailResultByAny(idOrSession: string) {
+    return (await dbGetDetailResultById(idOrSession)) || (await dbGetDetailResult(idOrSession));
 }
 
 export async function dbListMbtiResults(limit = 20) {

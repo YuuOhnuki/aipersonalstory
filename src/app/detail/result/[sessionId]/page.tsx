@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { dbGetDetailResult } from '@/server/db';
+import { dbGetDetailResultByAny } from "@/server/db";
 import { Section } from '@/components/ui/Section';
 import { Card, CardBody } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -8,9 +8,10 @@ import Link from 'next/link';
 export async function generateMetadata({
     params,
 }: {
-    params: { sessionId: string };
+    params: Promise<{ sessionId: string }>;
 }): Promise<Metadata> {
-    const row = await dbGetDetailResult(params.sessionId);
+    const p = await params;
+    const row = await dbGetDetailResultByAny(p.sessionId);
     const type = row?.mbti_type || 'MB';
     const title = '詳細診断 結果';
     const avatarUrl = `/api/image/avatar?type=${encodeURIComponent(type)}&title=${encodeURIComponent(title)}`;
@@ -30,9 +31,10 @@ export async function generateMetadata({
 export default async function DetailResultPage({
     params,
 }: {
-    params: { sessionId: string };
+    params: Promise<{ sessionId: string }>;
 }) {
-    const row = await dbGetDetailResult(params.sessionId);
+    const p = await params;
+    const row = await dbGetDetailResultByAny(p.sessionId);
     if (!row) {
         return (
             <div className="pb-20">

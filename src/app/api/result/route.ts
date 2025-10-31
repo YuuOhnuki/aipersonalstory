@@ -3,7 +3,8 @@ import { getSession } from '@/server/store';
 import { generateText } from '@/server/llm';
 import { parseAxes, toResult, toType } from '@/server/mbti';
 import type { MBTIMap } from '@/types/mbti';
-import { dbSaveMbtiResult } from '@/server/db';
+import { dbSaveMbtiResult, dbGetMbtiResult } from "@/server/db";
+import { randomUUID } from 'crypto';
 
 export const runtime = 'nodejs';
 
@@ -138,6 +139,14 @@ export async function GET(req: NextRequest) {
     // Precompute image URLs for persistence
     const avatarUrl = `/api/image/avatar?type=${encodeURIComponent(result.type)}&title=${encodeURIComponent(result.title)}`;
     const sceneUrl = `/api/image/scene?type=${encodeURIComponent(result.type)}&title=${encodeURIComponent(result.title)}`;
+
+    // Ensure a stable unique result_id for this session
+    let result_id: string | null = null;
+    try {
+        const existing = await dbGetMbtiResult(sessionId);
+        result_id = existing?.result_id || null;
+    } catch {}
+    if (!result_id) result_id = randomUUID();
     try {
         await dbSaveMbtiResult(
             sessionId,
@@ -152,8 +161,9 @@ export async function GET(req: NextRequest) {
                 advice,
                 avatar_url: avatarUrl,
                 scene_url: sceneUrl,
+                result_id: result_id as string,
             }
         );
     } catch {}
-    return NextResponse.json(result);
+    return NextResponse.json({ ...result, result_id });
 }

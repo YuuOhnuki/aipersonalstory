@@ -115,32 +115,41 @@ export default function DetailTakePage() {
                                             {q.id}. {q.text}
                                         </div>
                                         {q.type === 'scale' ? (
-                                            <div className="flex items-center justify-center">
+                                            <div className="flex flex-col items-center justify-center gap-2">
+                                                {/* 凡例 */}
+                                                <div className="w-full max-w-xs md:max-w-sm text-[11px] md:text-xs text-black/60 dark:text-white/60 flex items-center justify-between">
+                                                    <span>当てはまらない（1）</span>
+                                                    <span>どちらでもない（3）</span>
+                                                    <span>とても当てはまる（5）</span>
+                                                </div>
+                                                {/* 選択ボタン */}
                                                 <div className="flex gap-3 md:gap-4">
-                                                    {[1, 2, 3, 4, 5].map(
-                                                        (v) => (
+                                                    {[1, 2, 3, 4, 5].map((v) => {
+                                                        const label = v === 1
+                                                            ? '当てはまらない'
+                                                            : v === 3
+                                                            ? 'どちらでもない'
+                                                            : v === 5
+                                                            ? 'とても当てはまる'
+                                                            : `${v}`;
+                                                        const selected = answers[q.id]?.score === v;
+                                                        return (
                                                             <button
                                                                 key={v}
-                                                                onClick={() =>
-                                                                    setScale(
-                                                                        q.id,
-                                                                        v
-                                                                    )
-                                                                }
+                                                                onClick={() => setScale(q.id, v)}
+                                                                aria-label={`スコア${v}（${label}）`}
+                                                                title={`スコア${v}（${label}）`}
                                                                 className={[
                                                                     'h-12 w-12 md:h-14 md:w-14 rounded-full border text-sm md:text-base shadow-sm transition-transform active:scale-95',
-                                                                    answers[
-                                                                        q.id
-                                                                    ]?.score ===
-                                                                    v
+                                                                    selected
                                                                         ? 'bg-black text-white dark:bg-white dark:text-black'
                                                                         : 'bg-white/70 dark:bg-white/10 border-black/10 dark:border-white/10',
                                                                 ].join(' ')}
                                                             >
                                                                 {v}
                                                             </button>
-                                                        )
-                                                    )}
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
                                         ) : (

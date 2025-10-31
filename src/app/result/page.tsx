@@ -1,38 +1,51 @@
-import type { Metadata } from 'next';
-import ResultView from './ResultView';
-import { dbGetMbtiResult } from '@/server/db';
+"use client";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Section } from "@/components/ui/Section";
+import { Card, CardBody } from "@/components/ui/Card";
+import Button from "@/components/ui/Button";
+import Link from "next/link";
 
-export async function generateMetadata({
-    searchParams,
-}: {
-    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}): Promise<Metadata> {
-    const sp = await searchParams;
-    const sessionId =
-        typeof sp?.sessionId === 'string' ? sp.sessionId : undefined;
-    const row = sessionId ? await dbGetMbtiResult(sessionId) : null;
-    const type = row?.type || 'MB';
-    const title = row?.title || 'AI Personality Story 結果';
-    const imageUrl = `/api/image/scene?type=${encodeURIComponent(type)}&title=${encodeURIComponent(title)}`;
-    return {
-        title: `結果 - ${type}`,
-        openGraph: {
-            title: `結果 - ${type}`,
-            images: [{ url: imageUrl, width: 1200, height: 630 }],
-        },
-        twitter: {
-            card: 'summary_large_image',
-            images: [imageUrl],
-        },
-    };
-}
+export default function ResultPage() {
+  const router = useRouter();
+  const [checked, setChecked] = useState(false);
 
-export default async function ResultPage({
-    searchParams,
-}: {
-    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
-    const sp = await searchParams;
-    const sessionId = typeof sp?.sessionId === 'string' ? sp.sessionId : null;
-    return <ResultView initialSessionId={sessionId} />;
+  useEffect(() => {
+    const sid = (() => {
+      try { return localStorage.getItem("sessionId"); } catch { return null; }
+    })();
+    if (!sid) { setChecked(true); return; }
+    // Try to resolve saved result by id (result_id or session_id)
+    fetch(`/api/result/${encodeURIComponent(sid)}`)
+      .then(async (r) => {
+        if (!r.ok) throw new Error(String(r.status));
+        const data = await r.json();
+        const id = data?.result_id || sid;
+        router.replace(`/result/${encodeURIComponent(id)}`);
+      })
+      .catch(() => setChecked(true));
+  }, [router]);
+
+  if (!checked) return null;
+
+  return (
+    <div className="pb-20">
+      <Section className="pt-10">
+        <div className="mx-auto max-w-3xl">
+          <Card>
+            <CardBody>
+              <div className="space-y-3">
+                <div className="text-base font-semibold">結果がまだありません</div>
+                <div className="text-sm text-black/70 dark:text-white/70">簡易診断または詳細診断を実行して、結果を生成してください。</div>
+                <div className="flex gap-2 pt-2">
+                  <Link href="/chat"><Button>簡易診断を始める</Button></Link>
+                  <Link href="/detail/take"><Button variant="secondary">詳細診断を始める</Button></Link>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </div>
+      </Section>
+    </div>
+  );
 }
