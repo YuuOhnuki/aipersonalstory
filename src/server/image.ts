@@ -1,19 +1,28 @@
 function hash(str: string) {
-  let h = 0;
-  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
-  return h >>> 0;
+    let h = 0;
+    for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+    return h >>> 0;
 }
 
-function pick<T>(arr: T[], n: number) { return arr[n % arr.length]; }
+function pick<T>(arr: T[], n: number) {
+    return arr[n % arr.length];
+}
 
-export function generateAvatarSVG(type: string, seedText = "") {
-  const seed = hash(type + ":" + seedText);
-  const palette = ["#6366f1", "#a855f7", "#ec4899", "#06b6d4", "#10b981", "#f59e0b"];
-  const bg = pick(palette, seed);
-  const fg = pick(palette, seed >> 3 ^ 0x9e3779b1);
-  const accent = pick(palette, seed >> 5 ^ 0x85ebca6b);
-  const letter = type.slice(0, 2);
-  return `<?xml version="1.0" encoding="UTF-8"?>
+export function generateAvatarSVG(type: string, seedText = '') {
+    const seed = hash(type + ':' + seedText);
+    const palette = [
+        '#6366f1',
+        '#a855f7',
+        '#ec4899',
+        '#06b6d4',
+        '#10b981',
+        '#f59e0b',
+    ];
+    const bg = pick(palette, seed);
+    const fg = pick(palette, (seed >> 3) ^ 0x9e3779b1);
+    const accent = pick(palette, (seed >> 5) ^ 0x85ebca6b);
+    const letter = type.slice(0, 2);
+    return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 100 100">
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
@@ -38,13 +47,15 @@ export function generateAvatarSVG(type: string, seedText = "") {
 </svg>`;
 }
 
-export function generateSceneSVG(type: string, title = "") {
-  const seed = hash(type + ":scene:" + title);
-  const sky = ["#e0f2fe", "#eff6ff", "#fef3c7", "#ecfeff"]; const ground = ["#dcfce7", "#e9d5ff", "#fee2e2", "#fde68a"];
-  const skyC = pick(sky, seed);
-  const groundC = pick(ground, seed >> 2);
-  const sun = ["#f59e0b", "#f97316", "#ef4444"]; const sunC = pick(sun, seed >> 4);
-  return `<?xml version="1.0" encoding="UTF-8"?>
+export function generateSceneSVG(type: string, title = '') {
+    const seed = hash(type + ':scene:' + title);
+    const sky = ['#e0f2fe', '#eff6ff', '#fef3c7', '#ecfeff'];
+    const ground = ['#dcfce7', '#e9d5ff', '#fee2e2', '#fde68a'];
+    const skyC = pick(sky, seed);
+    const groundC = pick(ground, seed >> 2);
+    const sun = ['#f59e0b', '#f97316', '#ef4444'];
+    const sunC = pick(sun, seed >> 4);
+    return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
   <defs>
     <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
