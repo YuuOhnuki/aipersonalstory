@@ -57,7 +57,7 @@ export default function ChatPage() {
                 <h1 className="text-lg font-semibold">チャット</h1>
                 <div className="flex items-center gap-2">
                   {done ? (
-                    <Link href="/result"><Button size="md">結果を見る</Button></Link>
+                    <Link href={sessionId ? `/result/${encodeURIComponent(sessionId)}` : "/result"}><Button size="md">結果を見る</Button></Link>
                   ) : (
                     <span className="text-xs text-black/60 dark:text-white/60">最大5往復で終了</span>
                   )}
@@ -71,7 +71,7 @@ export default function ChatPage() {
                 <div className="mb-4 rounded-xl border border-emerald-300/40 bg-emerald-50/80 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 p-4 text-center transition-opacity">
                   <div className="text-base md:text-lg font-semibold">診断完了！</div>
                   <div className="text-xs md:text-sm opacity-80">結果が生成できました。下のボタンから結果ページへ進めます。</div>
-                  <div className="mt-3"><Link href="/result"><Button size="lg">結果を見る</Button></Link></div>
+                  <div className="mt-3"><Link href={sessionId ? `/result/${encodeURIComponent(sessionId)}` : "/result"}><Button size="lg">結果を見る</Button></Link></div>
                 </div>
               )}
               <div className="flex flex-col gap-4 max-h-[60vh] overflow-auto pr-1 transition-opacity">

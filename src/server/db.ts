@@ -38,6 +38,11 @@ function getDb() {
         title TEXT,
         summary TEXT,
         story TEXT,
+        features TEXT,
+        reasons TEXT,
+        advice TEXT,
+        avatar_url TEXT,
+        scene_url TEXT,
         created_at TEXT NOT NULL,
         FOREIGN KEY(session_id) REFERENCES user_session(id)
       );
@@ -54,10 +59,23 @@ function getDb() {
         valueFlexibility REAL,
         summaryText TEXT,
         story TEXT,
+        advice TEXT,
+        avatar_url TEXT,
+        scene_url TEXT,
         created_at TEXT NOT NULL,
         FOREIGN KEY(session_id) REFERENCES user_session(id)
       );
     `);
+    // Best-effort schema upgrades (ignore if columns already exist)
+    const alter = (sql: string) => { try { db.exec(sql); } catch {} };
+    alter("ALTER TABLE mbti_result ADD COLUMN features TEXT");
+    alter("ALTER TABLE mbti_result ADD COLUMN reasons TEXT");
+    alter("ALTER TABLE mbti_result ADD COLUMN advice TEXT");
+    alter("ALTER TABLE mbti_result ADD COLUMN avatar_url TEXT");
+    alter("ALTER TABLE mbti_result ADD COLUMN scene_url TEXT");
+    alter("ALTER TABLE detail_result ADD COLUMN advice TEXT");
+    alter("ALTER TABLE detail_result ADD COLUMN avatar_url TEXT");
+    alter("ALTER TABLE detail_result ADD COLUMN scene_url TEXT");
   } catch (e) {
     console.warn("SQLite unavailable, continuing without DB:", e);
     db = null;
@@ -78,12 +96,12 @@ export function dbAppendMessage(sessionId: string, msg: Message) {
     .run(sessionId, msg.role, msg.content, msg.createdAt);
 }
 
-export function dbSaveMbtiResult(sessionId: string, axes: MBTIMap, type: string, title: string, summary: string, story: string) {
+export function dbSaveMbtiResult(sessionId: string, axes: MBTIMap, type: string, title: string, summary: string, story: string, extras?: { features?: string; reasons?: string; advice?: string; avatar_url?: string; scene_url?: string }) {
   const d = getDb();
   if (!d) return;
-  d.prepare(`INSERT OR REPLACE INTO mbti_result (session_id, e_i, s_n, t_f, j_p, type, title, summary, story, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-    .run(sessionId, axes["E/I"], axes["S/N"], axes["T/F"], axes["J/P"], type, title, summary, story, new Date().toISOString());
+  d.prepare(`INSERT OR REPLACE INTO mbti_result (session_id, e_i, s_n, t_f, j_p, type, title, summary, story, features, reasons, advice, avatar_url, scene_url, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    .run(sessionId, axes["E/I"], axes["S/N"], axes["T/F"], axes["J/P"], type, title, summary, story, extras?.features ?? null, extras?.reasons ?? null, extras?.advice ?? null, extras?.avatar_url ?? null, extras?.scene_url ?? null, new Date().toISOString());
 }
 
 export function dbSaveDetailResult(sessionId: string, payload: {
@@ -92,13 +110,16 @@ export function dbSaveDetailResult(sessionId: string, payload: {
   supplements: { stressTolerance: number, adaptability: number, valueFlexibility: number },
   summaryText: string,
   story?: string,
+  advice?: string,
+  avatar_url?: string,
+  scene_url?: string,
 }) {
   const d = getDb();
   if (!d) return;
   d.prepare(`INSERT OR REPLACE INTO detail_result (
       session_id, mbti_type, openness, conscientiousness, extraversion, agreeableness, neuroticism,
-      stressTolerance, adaptability, valueFlexibility, summaryText, story, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      stressTolerance, adaptability, valueFlexibility, summaryText, story, advice, avatar_url, scene_url, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
     .run(
       payload as any && sessionId,
       payload.mbti_type,
@@ -112,6 +133,9 @@ export function dbSaveDetailResult(sessionId: string, payload: {
       payload.supplements.valueFlexibility,
       payload.summaryText,
       payload.story ?? null,
+      payload.advice ?? null,
+      payload.avatar_url ?? null,
+      payload.scene_url ?? null,
       new Date().toISOString()
     );
 }

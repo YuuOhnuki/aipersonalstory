@@ -53,7 +53,7 @@ export default function HistoryPage() {
                         <div className="text-xs text-black/60 dark:text-white/60">{r.created_at ? new Date(r.created_at).toLocaleString() : ""}</div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Link href={`/result?sessionId=${encodeURIComponent(r.session_id)}`}><Button size="sm">開く</Button></Link>
+                        <Link href={`/result/${encodeURIComponent(r.session_id)}`}><Button size="sm">開く</Button></Link>
                       </div>
                     </div>
                   ))}
@@ -76,7 +76,7 @@ export default function HistoryPage() {
                         <div className="text-xs text-black/60 dark:text-white/60">{r.created_at ? new Date(r.created_at).toLocaleString() : ""}</div>
                       </div>
                       <div className="flex items-center gap-2">
-                        {/* 詳細結果ページが未実装のため、将来的に専用ビューへリンク */}
+                        <Link href={`/detail/result/${encodeURIComponent(r.session_id)}`}><Button size="sm">開く</Button></Link>
                         <Link href={`/detail/take`}><Button size="sm" variant="secondary">もう一度診断</Button></Link>
                       </div>
                     </div>

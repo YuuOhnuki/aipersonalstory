@@ -90,8 +90,8 @@ export async function GET(req: NextRequest) {
   } catch {}
   if (!advice) advice = `- 小さな一歩を積み重ねて、あなたらしさを大切にする時間を確保しましょう。\n- 負担が大きいときはタスクを細かく分け、助けを求める練習も有効です。`;
 
-  // 2) Story generation (longer)
-  const storyPrompt = `あなたはストーリーテラーAIです。ユーザーの性格タイプは ${type} です。\nこのタイプを象徴する短編物語を日本語で作ってください。\nテーマ：自己発見と成長。400〜600文字。\n文体：やわらかく、比喩は控えめ、読みやすく。`;
+  // 2) Story generation (longer, poetic tone)
+  const storyPrompt = `あなたは詩人でもある物語作家です。読者の心に余韻を残す日本語の短編を作ってください。\n前提: 主人公の性格タイプは ${type}。\n要件:\n- 詩的で趣のある語り口\n- 感情の余白と静かな比喩を織り込む\n- 一文のリズムに緩急をつけ、呼吸を感じさせる\n- 読みやすさを損なわず、過度な難語は避ける\n- 400〜600文字程度`;
   console.log("[result] storyPrompt=", storyPrompt);
 
   let story = "";
@@ -115,6 +115,9 @@ export async function GET(req: NextRequest) {
 
   const result = { ...toResult(axes, story), features, reasons, advice };
   console.log("[result] final=", result);
-  try { dbSaveMbtiResult(sessionId, axes, result.type, result.title, result.summary, result.story); } catch {}
+  // Precompute image URLs for persistence
+  const avatarUrl = `/api/image/avatar?type=${encodeURIComponent(result.type)}&title=${encodeURIComponent(result.title)}`;
+  const sceneUrl = `/api/image/scene?type=${encodeURIComponent(result.type)}&title=${encodeURIComponent(result.title)}`;
+  try { dbSaveMbtiResult(sessionId, axes, result.type, result.title, result.summary, result.story, { features, reasons, advice, avatar_url: avatarUrl, scene_url: sceneUrl }); } catch {}
   return NextResponse.json(result);
 }

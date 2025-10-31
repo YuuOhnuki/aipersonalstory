@@ -103,9 +103,9 @@ export async function POST(req: NextRequest) {
   // Optionally also create story via same endpoint
   let story = "";
   try {
-    const sp = `あなたは心理小説家です。以下の性格データをもとに、その人の性格や価値観を象徴する短編物語を生成してください。\nMBTI:${mbtiType}\nBigFive:${JSON.stringify(bigFive)}\n補助:${JSON.stringify(supScores)}\n自由記述:${open}\n文字数:600〜800字。`;
+    const sp = `あなたは詩人でもある心理小説家です。以下の性格データから、主人公の内面をそっと照らす日本語の短編を作ってください。\n要件:\n- 詩的で趣のある語り口\n- 感情の余白と静かな比喩\n- 読みやすさを損なわず難語は控えめ\n- 800〜1200字程度\nMBTI:${mbtiType}\nBigFive:${JSON.stringify(bigFive)}\n補助:${JSON.stringify(supScores)}\n自由記述:${open}`;
     console.log("[detail] storyPrompt=", sp);
-    const out = await generateText(sp, { max_new_tokens: 1600, temperature: 0.7 });
+    const out = await generateText(sp, { max_new_tokens: 1800, temperature: 0.7 });
     console.log("[detail] storyOutRaw=", out);
     story = (out || "").trim();
   } catch {}
@@ -125,5 +125,10 @@ export async function POST(req: NextRequest) {
   } catch {}
   if (!advice) advice = `- 小さな一歩を重ねる計画を作り、できたことを言葉にして残しましょう。\n- 不安が強い日は刺激を減らし、安心できる人や環境に頼ってOKです。`;
 
-  return NextResponse.json({ sessionId, result: { ...payload, story, advice } });
+  // Persist enriched fields (advice and image URLs)
+  const avatarUrl = `/api/image/avatar?type=${encodeURIComponent(mbtiType)}&title=${encodeURIComponent("詳細診断")}`;
+  const sceneUrl = `/api/image/scene?type=${encodeURIComponent(mbtiType)}&title=${encodeURIComponent("詳細診断")}`;
+  try { dbSaveDetailResult(sessionId, { ...payload, story, advice, avatar_url: avatarUrl, scene_url: sceneUrl }); } catch {}
+
+  return NextResponse.json({ sessionId, result: { ...payload, story, advice, avatar_url: avatarUrl, scene_url: sceneUrl } });
 }
