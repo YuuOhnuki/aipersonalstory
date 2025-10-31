@@ -11,7 +11,10 @@
   "dependencies": {
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "next": "16.0.1"
+    "next": "16.0.1",
+    "@xenova/transformers": "^2.17.2",
+    "better-sqlite3": "^9.6.0",
+    "lucide-react": "^0.447.0"
   },
   "devDependencies": {
     "babel-plugin-react-compiler": "1.0.0",
