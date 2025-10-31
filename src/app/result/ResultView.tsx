@@ -6,7 +6,7 @@ import { Section } from '@/components/ui/Section';
 import { Card, CardBody } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
-import { Compass, Brain, Heart, Calendar } from 'lucide-react';
+import { Compass, Brain, Heart, Calendar, BookOpen, BadgeCheck, Loader2 } from 'lucide-react';
 
 export default function ResultView({
     initialSessionId,
@@ -60,7 +60,10 @@ export default function ResultView({
                     <Card>
                         <CardBody>
                             <div className="flex items-center justify-between">
-                                <h1 className="text-lg font-semibold">結果</h1>
+                                <h1 className="text-lg font-semibold inline-flex items-center gap-2">
+                                    <BadgeCheck className="h-5 w-5" />
+                                    結果
+                                </h1>
                                 <div className="flex items-center gap-2">
                                     <Link href="/">
                                         <Button variant="secondary" size="sm">
@@ -75,8 +78,8 @@ export default function ResultView({
                     <Card>
                         <CardBody>
                             {loading && (
-                                <div className="text-sm text-black/60 dark:text-white/60">
-                                    生成中...
+                                <div className="flex items-center gap-2 text-sm text-black/60 dark:text-white/60">
+                                    <Loader2 className="h-4 w-4 animate-spin" /> 読み込み中...
                                 </div>
                             )}
                             {error && (
@@ -86,7 +89,7 @@ export default function ResultView({
                             )}
                             {result && (
                                 <div className="space-y-5 animate-fade-in">
-                                    <div className="w-full flex items-center justify-center">
+                                    <div className="w-full flex items-center justify-center animate-zoom-in">
                                         <img
                                             alt="avatar"
                                             src={`/api/image/avatar?type=${encodeURIComponent(result.type)}&title=${encodeURIComponent(result.title)}`}
@@ -101,13 +104,13 @@ export default function ResultView({
                                             {result.title}
                                         </span>
                                     </div>
-                                    <div className="text-sm text-black/70 dark:text-white/70">
+                                    <div className="text-sm text-black/70 dark:text-white/70 animate-slide-left">
                                         {result.summary}
                                     </div>
-                                    <div className="rounded-xl border border-black/5 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-md p-4 text-sm leading-7">
+                                    <div className="rounded-xl border border-black/5 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-md p-4 text-sm leading-7 animate-slide-right">
                                         {result.story}
                                     </div>
-                                    <div className="flex flex-wrap gap-2 text-xs">
+                                    <div className="flex flex-wrap gap-2 text-xs stagger-sm">
                                         {Object.entries(result.axes).map(
                                             ([k, v]) => {
                                                 const color =
@@ -129,7 +132,7 @@ export default function ResultView({
                                                 return (
                                                     <span
                                                         key={k}
-                                                        className={`inline-flex items-center gap-1 rounded-full border border-black/10 dark:border-white/10 px-3 py-1 ${color}`}
+                                                        className={`inline-flex items-center gap-1 rounded-full border border-black/10 dark:border-white/10 px-3 py-1 ${color} animate-slide-up`}
                                                     >
                                                         <Icon className="h-3 w-3" />{' '}
                                                         {k}: {v}
@@ -140,7 +143,7 @@ export default function ResultView({
                                     </div>
 
                                     {result.features && (
-                                        <div>
+                                        <div className="animate-slide-left">
                                             <div className="text-sm font-semibold mb-2">
                                                 このタイプのよくある特徴
                                             </div>
@@ -150,7 +153,7 @@ export default function ResultView({
                                         </div>
                                     )}
                                     {result.reasons && (
-                                        <div>
+                                        <div className="animate-slide-right">
                                             <div className="text-sm font-semibold mb-2">
                                                 このタイプと判定した理由
                                             </div>
@@ -160,7 +163,7 @@ export default function ResultView({
                                         </div>
                                     )}
                                     {result.advice && (
-                                        <div>
+                                        <div className="animate-slide-left">
                                             <div className="text-sm font-semibold mb-2">
                                                 日常で役立つアドバイス
                                             </div>
@@ -170,7 +173,7 @@ export default function ResultView({
                                         </div>
                                     )}
 
-                                    <div className="rounded-xl overflow-hidden border border-black/10 dark:border-white/10">
+                                    <div className="rounded-xl overflow-hidden border border-black/10 dark:border-white/10 animate-zoom-in">
                                         <img
                                             alt="scene"
                                             src={`/api/image/scene?type=${encodeURIComponent(result.type)}&title=${encodeURIComponent(result.title)}`}

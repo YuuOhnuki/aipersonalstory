@@ -4,12 +4,13 @@ import { Card, CardBody } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import StoryTabs from '@/components/StoryTabs';
 import { MessageSquare, Brain, BookOpenText } from 'lucide-react';
+import InView from '@/components/ui/InView';
 
 export default function Home() {
     return (
         <div className="pb-20">
             <Section className="pt-20">
-                <div className="mx-auto max-w-3xl text-center space-y-6">
+                <InView effect="slide-up" className="mx-auto max-w-3xl text-center space-y-6">
                     <h1 className="text-4xl md:text-5xl font-semibold tracking-tight">
                         性格タイプが、
                         <span className="bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-rose-500 bg-clip-text text-transparent">
@@ -30,10 +31,11 @@ export default function Home() {
                             </Button>
                         </Link>
                     </div>
-                </div>
+                </InView>
             </Section>
-            <Section id="features" className="animate-slide-up">
-                <div className="grid md:grid-cols-3 gap-6">
+            <Section id="features">
+                <InView effect="slide-left">
+                <div className="grid md:grid-cols-3 gap-6 stagger-sm">
                     <Card>
                         <CardBody>
                             <h3 className="font-semibold mb-2 flex items-center gap-2">
@@ -66,13 +68,14 @@ export default function Home() {
                         </CardBody>
                     </Card>
                 </div>
+                </InView>
             </Section>
             <Section id="examples">
-                <div className="mx-auto max-w-5xl">
+                <InView effect="slide-right" className="mx-auto max-w-5xl">
                     <h2 className="text-xl md:text-2xl font-semibold mb-4">
                         質問の例
                     </h2>
-                    <div className="grid md:grid-cols-3 gap-4">
+                    <div className="grid md:grid-cols-3 gap-4 stagger-sm">
                         <Card>
                             <CardBody>
                                 <div className="text-sm font-medium mb-1">
@@ -104,14 +107,14 @@ export default function Home() {
                             </CardBody>
                         </Card>
                     </div>
-                </div>
+                </InView>
             </Section>
             <Section id="types">
-                <div className="mx-auto max-w-6xl">
+                <InView effect="slide-left" className="mx-auto max-w-6xl">
                     <h2 className="text-xl md:text-2xl font-semibold mb-4">
                         MBTIタイプの例
                     </h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 stagger-sm">
                         {[
                             ['INFP', '理想を追う詩人'],
                             ['INFJ', '洞察の導き手'],
@@ -141,18 +144,18 @@ export default function Home() {
                             </div>
                         ))}
                     </div>
-                </div>
+                </InView>
             </Section>
             <Section id="sample-story">
-                <div className="mx-auto max-w-4xl">
+                <InView effect="slide-right" className="mx-auto max-w-4xl">
                     <h2 className="text-xl md:text-2xl font-semibold mb-4">
                         ストーリー生成例
                     </h2>
                     <StoryTabs />
-                </div>
+                </InView>
             </Section>
             <Section>
-                <div className="mx-auto max-w-5xl">
+                <InView effect="slide-left" className="mx-auto max-w-5xl">
                     <Card>
                         <CardBody>
                             <div className="flex flex-col md:flex-row items-center justify-between gap-3">
@@ -175,14 +178,14 @@ export default function Home() {
                             </div>
                         </CardBody>
                     </Card>
-                </div>
+                </InView>
             </Section>
             <Section id="how">
-                <div className="mx-auto max-w-5xl">
+                <InView effect="slide-right" className="mx-auto max-w-5xl">
                     <h2 className="text-xl md:text-2xl font-semibold mb-4">
                         はじめ方（3ステップ）
                     </h2>
-                    <div className="grid md:grid-cols-3 gap-4">
+                    <div className="grid md:grid-cols-3 gap-4 stagger-sm">
                         <Card>
                             <CardBody>
                                 <div className="text-2xl font-semibold mb-2">
@@ -214,10 +217,10 @@ export default function Home() {
                             </CardBody>
                         </Card>
                     </div>
-                </div>
+                </InView>
             </Section>
             <Section>
-                <div className="mx-auto max-w-3xl text-center space-y-4">
+                <InView effect="slide-up" className="mx-auto max-w-3xl text-center space-y-4">
                     <h2 className="text-xl md:text-2xl font-semibold">
                         さっそく、あなたの物語を。
                     </h2>
@@ -231,7 +234,7 @@ export default function Home() {
                             </Button>
                         </Link>
                     </div>
-                </div>
+                </InView>
             </Section>
         </div>
     );

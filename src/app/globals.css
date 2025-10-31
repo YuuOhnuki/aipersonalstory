@@ -36,14 +36,34 @@ body {
 }
 
 @keyframes slide-up {
-    from {
-        opacity: 0;
-        transform: translateY(8px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-left {
+  from { opacity: 0; transform: translateX(12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-right {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes zoom-in {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .animate-fade-in {
@@ -51,12 +71,32 @@ body {
 }
 
 .animate-slide-up {
-    animation: slide-up 400ms ease-out both;
+  animation: slide-up 400ms ease-out both;
 }
 
+.animate-slide-left { animation: slide-left 420ms ease-out both; }
+.animate-slide-right { animation: slide-right 420ms ease-out both; }
+.animate-zoom-in { animation: zoom-in 380ms ease-out both; }
+.animate-spin { animation: spin 1s linear infinite; }
+
+/* simple stagger helpers */
+.stagger-sm > * { animation-delay: 40ms; }
+.stagger-sm > *:nth-child(2) { animation-delay: 80ms; }
+.stagger-sm > *:nth-child(3) { animation-delay: 120ms; }
+.stagger-sm > *:nth-child(4) { animation-delay: 160ms; }
+.stagger-sm > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-md > * { animation-delay: 60ms; }
+.stagger-md > *:nth-child(2) { animation-delay: 120ms; }
+.stagger-md > *:nth-child(3) { animation-delay: 180ms; }
+.stagger-md > *:nth-child(4) { animation-delay: 240ms; }
+.stagger-md > *:nth-child(5) { animation-delay: 300ms; }
+
 @media (prefers-reduced-motion: reduce) {
-    .animate-fade-in,
-    .animate-slide-up {
-        animation: none;
-    }
+  .animate-fade-in,
+  .animate-slide-up,
+  .animate-slide-left,
+  .animate-slide-right,
+  .animate-zoom-in {
+    animation: none;
+  }
 }
