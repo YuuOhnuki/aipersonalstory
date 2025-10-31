@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { dbEnsureSession, dbSaveDetailResult } from '@/server/db';
+import {
+    dbEnsureSession,
+    dbSaveDetailResult,
+    dbGetDetailResult,
+} from '@/server/db';
 import { generateText } from '@/server/llm';
+import { randomUUID } from 'crypto';
 
 export const runtime = 'nodejs';
 
@@ -199,7 +204,7 @@ export async function POST(req: NextRequest) {
     // Optionally also create story via same endpoint
     let story = '';
     try {
-        const sp = `あなたは詩人でもある心理小説家です。以下の性格データから、主人公の内面をそっと照らす日本語の短編を作ってください。\n要件:\n- 詩的で趣のある語り口\n- 感情の余白と静かな比喩\n- 読みやすさを損なわず難語は控えめ\n- 400〜600字程度\nMBTI:${mbtiType}\nBigFive:${JSON.stringify(bigFive)}\n補助:${JSON.stringify(supScores)}\n自由記述:${open}`;
+        const sp = `あなたは詩人でもある心理小説家です。以下の性格データから、主人公の内面をそっと照らす日本語の短編を作ってください。\n要件:\n- 詩的で趣のある語り口\n- 感情の余白と静かな比喩\n- 読みやすさを損なわず難語は控えめ\n- 300〜400字程度\nMBTI:${mbtiType}\nBigFive:${JSON.stringify(bigFive)}\n補助:${JSON.stringify(supScores)}\n自由記述:${open}`;
         const out = await generateText(sp, {
             max_new_tokens: 1800,
             temperature: 0.7,
@@ -210,6 +215,30 @@ export async function POST(req: NextRequest) {
     if (!story || story.includes(genericFallback)) {
         story = `静かな午後、あなたは自分らしさをそっと確かめる。タイプ${mbtiType}の傾向が、選ぶ言葉や歩幅に静かに表れる。小さな決断の積み重ねが、次の一歩をやさしく照らしていく。`;
     }
+
+    // Proofread story to make Japanese more natural and concise
+    try {
+        const rp = `次の文章を、日本語として自然で読みやすい文体に校正してください。意味内容は保持し、冗長さを抑え、300〜400字程度に整えてください。出力は校正後の本文のみ。前置きや注釈は書かないでください。\n---\n${story}\n---`;
+        const ro = await generateText(rp, {
+            max_new_tokens: 1800,
+            temperature: 0.4,
+        });
+        let refined = (ro || '').trim();
+        // Strip meta lines like "校正しました" 等
+        refined = refined
+            .replace(
+                /^.*(校正|整え|調整|修正|要約|本文|出力).*(しました|しました。|しました。)?\s*$/gim,
+                ''
+            )
+            .replace(
+                /^\s*[-–—]*\s*(校正|整え|調整|修正|要約|本文|出力).*$\n?/gim,
+                ''
+            )
+            .trim();
+        if (refined && !refined.includes(genericFallback)) {
+            story = refined;
+        }
+    } catch {}
 
     // Counseling-like advice
     let advice = '';
@@ -224,25 +253,63 @@ export async function POST(req: NextRequest) {
     if (!advice)
         advice = `- 小さな一歩を重ねる計画を作り、できたことを言葉にして残しましょう。\n- 不安が強い日は刺激を減らし、安心できる人や環境に頼ってOKです。`;
 
+    // Generate "あるある" section (common occurrences)
+    let commons = '';
+    try {
+        const cp = `あなたは心理学の知見に基づくアナリストです。以下の性格データの人が日常で直面しがちな「あるある」を、日本語で5〜7個、1行ずつ簡潔に列挙してください。断定的に決めつけず、中立でやわらかい表現にしてください。箇条書き以外の出力は不要です。\nMBTI:${mbtiType}\nBigFive:${JSON.stringify(bigFive)}\n補助:${JSON.stringify(supScores)}\n自由記述:${open}`;
+        const co = await generateText(cp, {
+            max_new_tokens: 400,
+            temperature: 0.5,
+        });
+        commons = (co || '').trim();
+    } catch {}
+    if (!commons)
+        commons = `- 予定があると安心しやすいが、余白の時間で創造性が出ることがある\n- 初対面では様子を見るが、慣れると意見を丁寧に伝えられる`;
+
+    // Generate "科学的根拠" section (evidence-based notes)
+    let evidence = '';
+    try {
+        const ep = `あなたは心理学研究の要点を一般向けにわかりやすく伝える専門家です。Big FiveやMBTIに関する一般的な研究知見を踏まえ、以下の結果の解釈に関する科学的根拠を日本語で3〜5項目、各1〜2文で簡潔にまとめてください。具体的な論文名や年代は挙げず、「研究では〜と示される」「一般に〜と関連する」といった表現で、誇張や断定を避けてください。箇条書き以外の出力は不要です。\nMBTI:${mbtiType}\nBigFive:${JSON.stringify(bigFive)}\n補助:${JSON.stringify(supScores)}\n自由記述:${open}`;
+        const eo = await generateText(ep, {
+            max_new_tokens: 500,
+            temperature: 0.4,
+        });
+        evidence = (eo || '').trim();
+    } catch {}
+    if (!evidence)
+        evidence = `- 外向性は社会的刺激からのエネルギー獲得と関連すると報告されます。\n- 誠実性は計画性や目標達成と正の関連を示す傾向があります。`;
+
+    // Compose all sections under labeled headers
+    const composedAdvice = `【アドバイス】\n${advice}\n\n【あるある】\n${commons}\n\n【科学的根拠】\n${evidence}`;
+
     // Persist enriched fields (advice and image URLs)
-    const avatarUrl = `/api/image/avatar?type=${encodeURIComponent(mbtiType)}&title=${encodeURIComponent('詳細診断')}`;
-    const sceneUrl = `/api/image/scene?type=${encodeURIComponent(mbtiType)}&title=${encodeURIComponent('詳細診断')}`;
+    let result_id: string | null = null;
+    try {
+        const existing = await dbGetDetailResult(sessionId);
+        result_id = existing?.result_id || null;
+    } catch {}
+    if (!result_id) result_id = randomUUID();
+
+    const avatarUrl = `/api/image/avatar?id=${encodeURIComponent(result_id)}`;
+    const sceneUrl = `/api/image/scene?id=${encodeURIComponent(result_id)}`;
     try {
         await dbSaveDetailResult(sessionId, {
             ...payload,
             story,
-            advice,
+            advice: composedAdvice,
             avatar_url: avatarUrl,
             scene_url: sceneUrl,
+            result_id,
         });
     } catch {}
 
     return NextResponse.json({
         sessionId,
+        result_id,
         result: {
             ...payload,
             story,
-            advice,
+            advice: composedAdvice,
             avatar_url: avatarUrl,
             scene_url: sceneUrl,
         },

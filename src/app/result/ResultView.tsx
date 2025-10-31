@@ -101,7 +101,7 @@ export default function ResultView({
                                     <div className="w-full flex items-center justify-center animate-zoom-in">
                                         <img
                                             alt="avatar"
-                                            src={`/api/image/avatar?type=${encodeURIComponent(result.type)}&title=${encodeURIComponent(result.title)}`}
+                                            src={`/api/image/avatar?id=${encodeURIComponent(sessionId || '')}`}
                                             className="h-24 w-24 rounded-2xl border border-black/10 dark:border-white/10 shadow-sm object-cover"
                                         />
                                     </div>
@@ -185,7 +185,7 @@ export default function ResultView({
                                     <div className="rounded-xl overflow-hidden border border-black/10 dark:border-white/10 animate-zoom-in">
                                         <img
                                             alt="scene"
-                                            src={`/api/image/scene?type=${encodeURIComponent(result.type)}&title=${encodeURIComponent(result.title)}`}
+                                            src={`/api/image/scene?id=${encodeURIComponent(sessionId || '')}`}
                                             className="w-full object-cover"
                                         />
                                     </div>

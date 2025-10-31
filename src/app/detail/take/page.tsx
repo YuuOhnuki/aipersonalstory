@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Section } from '@/components/ui/Section';
 import { Card, CardBody } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -16,16 +17,11 @@ type Question = {
 type Answer = { questionId: string; score?: number; text?: string };
 
 export default function DetailTakePage() {
+    const router = useRouter();
     const [questions, setQuestions] = useState<Question[]>([]);
     const [answers, setAnswers] = useState<Record<string, Answer>>({});
     const [loading, setLoading] = useState(false);
-    type DetailResult = {
-        mbti_type: string;
-        bigFive?: Record<string, number>;
-        summaryText?: string;
-        story?: string;
-    } | null;
-    const [result, setResult] = useState<DetailResult>(null);
+    // 結果は同一ページで表示せず、結果ページへ遷移する
     const [sessionId, setSessionId] = useState<string | null>(null);
 
     useEffect(() => {
@@ -67,7 +63,11 @@ export default function DetailTakePage() {
                 body: JSON.stringify(body),
             });
             const data = await res.json();
-            setResult((data.result || data) as DetailResult);
+            const rid = data?.result_id || sessionId;
+            if (rid && typeof rid === 'string') {
+                router.push(`/detail/result/${encodeURIComponent(rid)}`);
+                return;
+            }
         } finally {
             setLoading(false);
         }
@@ -199,39 +199,7 @@ export default function DetailTakePage() {
                         </CardBody>
                     </Card>
 
-                    {result && (
-                        <Card>
-                            <CardBody>
-                                <div className="space-y-3">
-                                    <div className="text-sm text-black/70 dark:text-white/70">
-                                        MBTI: {result.mbti_type}
-                                    </div>
-                                    {result.bigFive && (
-                                        <div className="text-xs flex flex-wrap gap-2">
-                                            {Object.entries(result.bigFive).map(
-                                                ([k, v]) => (
-                                                    <span
-                                                        key={k}
-                                                        className="rounded-full border border-black/10 dark:border-white/10 px-3 py-1 bg-white/60 dark:bg-white/10 backdrop-blur-md"
-                                                    >
-                                                        {k}: {v}
-                                                    </span>
-                                                )
-                                            )}
-                                        </div>
-                                    )}
-                                    <div className="text-sm">
-                                        {result.summaryText}
-                                    </div>
-                                    {result.story && (
-                                        <div className="rounded-xl border border-black/5 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur-md p-4 text-sm leading-7">
-                                            {result.story}
-                                        </div>
-                                    )}
-                                </div>
-                            </CardBody>
-                        </Card>
-                    )}
+                    {/* 結果は遷移先で表示するため、このページでは表示しない */}
                 </div>
             </Section>
         </div>
