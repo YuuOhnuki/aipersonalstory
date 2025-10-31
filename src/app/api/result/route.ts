@@ -21,12 +21,10 @@ export async function GET(req: NextRequest) {
 
   // 1) MBTI axis estimation
   const mbtiPrompt = `あなたは心理分析アシスタントです。以下の会話記録から、ユーザーのMBTIを推定してください。\n\n会話記録:\n${transcript}\n\n各軸(E/I, S/N, T/F, J/P)を1つずつ判定し、簡単な理由は書かずに、次のJSONのみを厳密に出力してください:\n{ "E/I": "E or I", "S/N": "S or N", "T/F": "T or F", "J/P": "J or P" }`;
-  console.log("[result] mbtiPrompt=", mbtiPrompt);
 
   let axes: MBTIMap | null = null;
   try {
     const out = await generateText(mbtiPrompt, { max_new_tokens: 120, temperature: 0.2 });
-    console.log("[result] mbtiOutRaw=", out);
     axes = parseAxes(out || "");
   } catch {}
 
@@ -61,9 +59,7 @@ export async function GET(req: NextRequest) {
   let features = "";
   try {
     const fp = `あなたは心理アナリストです。タイプ${type}の一般的な特徴を日本語で3〜5行で箇条書きで説明してください。専門用語は避け、誰にでも分かる言葉にしてください。`;
-    console.log("[result] featuresPrompt=", fp);
     const fo = await generateText(fp, { max_new_tokens: 220, temperature: 0.4 });
-    console.log("[result] featuresOutRaw=", fo);
     features = (fo || "").trim();
   } catch {}
   if (!features) features = `- ${type} の一般的な強みと傾向を分かりやすく表しました。\n- 想像力/計画性/論理/共感などのバランスが日常に現れます。`;
@@ -72,9 +68,7 @@ export async function GET(req: NextRequest) {
   let reasons = "";
   try {
     const rp = `あなたは心理アナリストです。次の会話記録から、${type} と判断した根拠を3点、分かりやすい日本語で説明してください。専門用語は避けます。\n会話:\n${transcript}`;
-    console.log("[result] reasonsPrompt=", rp);
     const ro = await generateText(rp, { max_new_tokens: 260, temperature: 0.5 });
-    console.log("[result] reasonsOutRaw=", ro);
     reasons = (ro || "").trim();
   } catch {}
   if (!reasons) reasons = `- 会話に見られたキーワードや姿勢から、${type} の傾向が読み取れました。`;
@@ -83,21 +77,17 @@ export async function GET(req: NextRequest) {
   let advice = "";
   try {
     const ap = `あなたは心理カウンセラーです。タイプ${type}の人に向けて、日常で役立つ具体的なアドバイスを日本語で4〜6行で提示してください。実践的で優しい言葉にしてください。`;
-    console.log("[result] advicePrompt=", ap);
     const ao = await generateText(ap, { max_new_tokens: 280, temperature: 0.6 });
-    console.log("[result] adviceOutRaw=", ao);
     advice = (ao || "").trim();
   } catch {}
   if (!advice) advice = `- 小さな一歩を積み重ねて、あなたらしさを大切にする時間を確保しましょう。\n- 負担が大きいときはタスクを細かく分け、助けを求める練習も有効です。`;
 
   // 2) Story generation (longer, poetic tone)
-  const storyPrompt = `あなたは詩人でもある物語作家です。読者の心に余韻を残す日本語の短編を作ってください。\n前提: 主人公の性格タイプは ${type}。\n要件:\n- 詩的で趣のある語り口\n- 感情の余白と静かな比喩を織り込む\n- 一文のリズムに緩急をつけ、呼吸を感じさせる\n- 読みやすさを損なわず、過度な難語は避ける\n- 400〜600文字程度`;
-  console.log("[result] storyPrompt=", storyPrompt);
+  const storyPrompt = `あなたは詩人でもある物語作家です。読者の心に余韻を残す日本語の短編を作ってください。\n前提: 主人公の性格タイプは ${type}。\n要件:\n- 詩的で趣のある語り口\n- 感情の余白と静かな比喩を織り込む\n- 一文のリズムに緩急をつけ、呼吸を感じさせる\n- 読みやすさを損なわず、過度な難語は避ける\n- 200〜300文字程度`;
 
   let story = "";
   try {
     const out2 = await generateText(storyPrompt, { max_new_tokens: 1100, temperature: 0.7 });
-    console.log("[result] storyOutRaw=", out2);
     story = (out2 || "").trim();
   } catch {}
 
@@ -114,10 +104,10 @@ export async function GET(req: NextRequest) {
   }
 
   const result = { ...toResult(axes, story), features, reasons, advice };
-  console.log("[result] final=", result);
+  
   // Precompute image URLs for persistence
   const avatarUrl = `/api/image/avatar?type=${encodeURIComponent(result.type)}&title=${encodeURIComponent(result.title)}`;
   const sceneUrl = `/api/image/scene?type=${encodeURIComponent(result.type)}&title=${encodeURIComponent(result.title)}`;
-  try { dbSaveMbtiResult(sessionId, axes, result.type, result.title, result.summary, result.story, { features, reasons, advice, avatar_url: avatarUrl, scene_url: sceneUrl }); } catch {}
+  try { await dbSaveMbtiResult(sessionId, axes, result.type, result.title, result.summary, result.story, { features, reasons, advice, avatar_url: avatarUrl, scene_url: sceneUrl }); } catch {}
   return NextResponse.json(result);
 }

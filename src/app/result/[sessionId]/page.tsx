@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import ResultView from "../ResultView";
 import { dbGetMbtiResult } from "@/server/db";
 
-export async function generateMetadata({ params }: { params: { sessionId: string } }): Promise<Metadata> {
-  const row = dbGetMbtiResult(params.sessionId);
+export async function generateMetadata({ params }: { params: Promise<{ sessionId: string }> }): Promise<Metadata> {
+  const p = await params;
+  const row = await dbGetMbtiResult(p.sessionId);
   const type = row?.type || "MB";
   const title = row?.title || "AI Personality Story 結果";
   const avatarUrl = `/api/image/avatar?type=${encodeURIComponent(type)}&title=${encodeURIComponent(title)}`;
@@ -20,6 +21,9 @@ export async function generateMetadata({ params }: { params: { sessionId: string
   };
 }
 
-export default function ResultSessionPage({ params }: { params: { sessionId: string } }) {
-  return <ResultView initialSessionId={params.sessionId} />;
+export default async function ResultSessionPage({ params }: { params: Promise<{ sessionId: string }> }) {
+  const p = await params;
+  // ensure DB row exists; client will still fetch via API for current UI
+  await dbGetMbtiResult(p.sessionId);
+  return <ResultView initialSessionId={p.sessionId} />;
 }

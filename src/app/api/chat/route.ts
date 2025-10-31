@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     createSessionWithId(sessionId);
     session = getSession(sessionId);
   }
-  if (session) dbEnsureSession(session.id, session.startedAt);
+  if (session) await dbEnsureSession(session.id, session.startedAt);
 
   const body = await req.json().catch(() => ({}));
   const content: string = (body?.content ?? "").toString();
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   const now = new Date().toISOString();
   const userMsg: Message = { id: crypto.randomUUID(), role: "user", content, createdAt: now };
   appendMessage(sessionId, userMsg);
-  dbAppendMessage(sessionId, userMsg);
+  await dbAppendMessage(sessionId, userMsg);
 
   // Determine which axis to ask next
   const current = getSession(sessionId);
@@ -50,11 +50,8 @@ export async function POST(req: NextRequest) {
   // First, a short reflective follow-up using LLM if available
   try {
     const followPrompt = `あなたは臨床心理の知見を持つ穏やかなカウンセラーです。ユーザーの文脈に寄り添い、反射（オウム返し）や短い相づちで共感のみを伝えてください。\n- 評価しない\n- 専門用語を使わない\n- 質問はしない（共感のみ）\n- 一文、50〜80文字程度\n日本語で返答。\n\nユーザー: ${content}`;
-    console.log("[chat] followPrompt=", followPrompt);
     const out = await generateText(followPrompt, { max_new_tokens: 64, temperature: 0.4 });
-    console.log("[chat] followOut=", out);
     assistantText = (out || "").trim();
-    console.log("[chat] initial assistantText=", assistantText);
   } catch {}
 
   // Build assistant messages: (1) short reflection if present, (2) axis question
@@ -65,11 +62,11 @@ export async function POST(req: NextRequest) {
   }
   const questionText = `質問：${AXIS_QUESTIONS[axis]}`;
   assistantMessages.push({ id: crypto.randomUUID(), role: "assistant", content: questionText, createdAt: nowIso });
-  console.log("[chat] assistantMessages=", assistantMessages.map(m => m.content));
+  
 
   for (const m of assistantMessages) {
     appendMessage(sessionId, m);
-    dbAppendMessage(sessionId, m);
+    await dbAppendMessage(sessionId, m);
   }
 
   // Advance round and determine if done (exactly number of axes)

@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const limit = Number(searchParams.get("limit") || 20);
   try {
-    const rows = dbListMbtiResults(limit);
+    const rows = await dbListMbtiResults(limit);
     return NextResponse.json({ items: rows });
   } catch (e) {
     return NextResponse.json({ items: [] });

@@ -6,7 +6,7 @@ import Button from "@/components/ui/Button";
 import Link from "next/link";
 
 export async function generateMetadata({ params }: { params: { sessionId: string } }): Promise<Metadata> {
-  const row = dbGetDetailResult(params.sessionId);
+  const row = await dbGetDetailResult(params.sessionId);
   const type = row?.mbti_type || "MB";
   const title = "詳細診断 結果";
   const avatarUrl = `/api/image/avatar?type=${encodeURIComponent(type)}&title=${encodeURIComponent(title)}`;
@@ -23,8 +23,8 @@ export async function generateMetadata({ params }: { params: { sessionId: string
   };
 }
 
-export default function DetailResultPage({ params }: { params: { sessionId: string } }) {
-  const row = dbGetDetailResult(params.sessionId);
+export default async function DetailResultPage({ params }: { params: { sessionId: string } }) {
+  const row = await dbGetDetailResult(params.sessionId);
   if (!row) {
     return (
       <div className="pb-20">

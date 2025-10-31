@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import ResultView from "./ResultView";
 import { dbGetMbtiResult } from "@/server/db";
 
-export async function generateMetadata({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }): Promise<Metadata> {
-  const sessionId = typeof searchParams?.sessionId === "string" ? searchParams.sessionId : undefined;
-  const row = sessionId ? dbGetMbtiResult(sessionId) : null;
+export async function generateMetadata({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }): Promise<Metadata> {
+  const sp = await searchParams;
+  const sessionId = typeof sp?.sessionId === "string" ? sp.sessionId : undefined;
+  const row = sessionId ? await dbGetMbtiResult(sessionId) : null;
   const type = row?.type || "MB";
   const title = row?.title || "AI Personality Story 結果";
   const imageUrl = `/api/image/scene?type=${encodeURIComponent(type)}&title=${encodeURIComponent(title)}`;
@@ -21,7 +22,8 @@ export async function generateMetadata({ searchParams }: { searchParams: { [key:
   };
 }
 
-export default function ResultPage({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
-  const sessionId = typeof searchParams?.sessionId === "string" ? searchParams.sessionId : null;
+export default async function ResultPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+  const sp = await searchParams;
+  const sessionId = typeof sp?.sessionId === "string" ? sp.sessionId : null;
   return <ResultView initialSessionId={sessionId} />;
 }

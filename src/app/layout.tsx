@@ -6,6 +6,8 @@ import Footer from "@/components/Footer";
 import LiquidBackground from "@/components/LiquidBackground";
 import ConsentBanner from "@/components/ConsentBanner";
 
+import { Analytics } from "@vercel/analytics/next"
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -36,6 +38,7 @@ export default function RootLayout({
         </main>
         <Footer />
         <ConsentBanner />
+        <Analytics/>
       </body>
     </html>
   );

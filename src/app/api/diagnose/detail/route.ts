@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   const answers = body?.answers || [];
 
   // Persist session stub if DB available
-  dbEnsureSession(sessionId, new Date().toISOString());
+  await dbEnsureSession(sessionId, new Date().toISOString());
 
   // 1) MBTI scoring
   const mbtiScores: Record<"E/I"|"S/N"|"T/F"|"J/P", number> = { "E/I": 0, "S/N": 0, "T/F": 0, "J/P": 0 };
@@ -98,15 +98,13 @@ export async function POST(req: NextRequest) {
     supplements: supScores,
     summaryText,
   };
-  try { dbSaveDetailResult(sessionId, payload); } catch {}
+  try { await dbSaveDetailResult(sessionId, payload); } catch {}
 
   // Optionally also create story via same endpoint
   let story = "";
   try {
-    const sp = `あなたは詩人でもある心理小説家です。以下の性格データから、主人公の内面をそっと照らす日本語の短編を作ってください。\n要件:\n- 詩的で趣のある語り口\n- 感情の余白と静かな比喩\n- 読みやすさを損なわず難語は控えめ\n- 800〜1200字程度\nMBTI:${mbtiType}\nBigFive:${JSON.stringify(bigFive)}\n補助:${JSON.stringify(supScores)}\n自由記述:${open}`;
-    console.log("[detail] storyPrompt=", sp);
+    const sp = `あなたは詩人でもある心理小説家です。以下の性格データから、主人公の内面をそっと照らす日本語の短編を作ってください。\n要件:\n- 詩的で趣のある語り口\n- 感情の余白と静かな比喩\n- 読みやすさを損なわず難語は控えめ\n- 400〜600字程度\nMBTI:${mbtiType}\nBigFive:${JSON.stringify(bigFive)}\n補助:${JSON.stringify(supScores)}\n自由記述:${open}`;
     const out = await generateText(sp, { max_new_tokens: 1800, temperature: 0.7 });
-    console.log("[detail] storyOutRaw=", out);
     story = (out || "").trim();
   } catch {}
   const genericFallback = "了解しました。もう少し詳しく教えてください。";
@@ -118,9 +116,7 @@ export async function POST(req: NextRequest) {
   let advice = "";
   try {
     const ap = `あなたは心理カウンセラーです。以下の性格データに沿って、本人が日々をより良く過ごすための具体的アドバイスを日本語で5〜8行で提案してください。専門用語は避け、やさしい口調で。\nMBTI:${mbtiType}\nBigFive:${JSON.stringify(bigFive)}\n補助:${JSON.stringify(supScores)}\n自由記述:${open}`;
-    console.log("[detail] advicePrompt=", ap);
     const ao = await generateText(ap, { max_new_tokens: 400, temperature: 0.6 });
-    console.log("[detail] adviceOutRaw=", ao);
     advice = (ao || "").trim();
   } catch {}
   if (!advice) advice = `- 小さな一歩を重ねる計画を作り、できたことを言葉にして残しましょう。\n- 不安が強い日は刺激を減らし、安心できる人や環境に頼ってOKです。`;
@@ -128,7 +124,7 @@ export async function POST(req: NextRequest) {
   // Persist enriched fields (advice and image URLs)
   const avatarUrl = `/api/image/avatar?type=${encodeURIComponent(mbtiType)}&title=${encodeURIComponent("詳細診断")}`;
   const sceneUrl = `/api/image/scene?type=${encodeURIComponent(mbtiType)}&title=${encodeURIComponent("詳細診断")}`;
-  try { dbSaveDetailResult(sessionId, { ...payload, story, advice, avatar_url: avatarUrl, scene_url: sceneUrl }); } catch {}
+  try { await dbSaveDetailResult(sessionId, { ...payload, story, advice, avatar_url: avatarUrl, scene_url: sceneUrl }); } catch {}
 
   return NextResponse.json({ sessionId, result: { ...payload, story, advice, avatar_url: avatarUrl, scene_url: sceneUrl } });
 }
