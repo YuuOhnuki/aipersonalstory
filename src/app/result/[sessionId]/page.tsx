@@ -15,7 +15,7 @@ export async function generateMetadata({
     const p = await params;
     const row = await dbGetMbtiResultByAny(p.sessionId);
     const type = row?.type || 'MB';
-    const title = row?.title || 'AI Personality Story 結果';
+    const title = row?.title || 'Synchronauts 結果';
     const avatarUrl = `/api/image/avatar?id=${encodeURIComponent(p.sessionId)}`;
     return {
         title: `結果 - ${type}`,

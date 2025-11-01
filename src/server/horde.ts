@@ -32,6 +32,7 @@ export async function generateWithHorde(
         cfg_scale?: number;
         timeoutMs?: number;
         progressKey?: string;
+        models?: string[];
     }
 ) {
     const apikey = process.env.STABLE_HORDE_API_KEY || '0000000000'; // anonymous key
@@ -66,12 +67,20 @@ export async function generateWithHorde(
                 sampler_name: 'k_euler_a',
                 n: 1,
             },
+            models:
+                Array.isArray(opts?.models) && opts!.models!.length > 0
+                    ? opts!.models
+                    : undefined,
             nsfw: false,
             censor_nsfw: true,
         }),
     });
 
     if (!submitRes.ok) {
+        console.error('[horde] submit failed', {
+            status: submitRes.status,
+            progressKey: opts?.progressKey,
+        });
         throw new Error(`Horde submit failed: ${submitRes.status}`);
     }
     const submitJson: any = await submitRes.json();
@@ -83,6 +92,13 @@ export async function generateWithHorde(
             status: 'submitted',
             id,
             updatedAt: Date.now(),
+        });
+        console.info('[horde] submitted', {
+            id,
+            progressKey: opts.progressKey,
+            size: `${width}x${height}`,
+            steps,
+            cfg_scale,
         });
     }
 
@@ -108,6 +124,13 @@ export async function generateWithHorde(
                 id,
                 polls,
                 updatedAt: Date.now(),
+            });
+            console.debug('[horde] checking', {
+                id,
+                progressKey: opts.progressKey,
+                polls,
+                done: !!ch.done,
+                wait_time: ch.wait_time,
             });
         }
         if (ch.done) break;
@@ -140,6 +163,13 @@ export async function generateWithHorde(
             polls,
             waitedSecs,
             updatedAt: Date.now(),
+        });
+        console.info('[horde] done', {
+            id,
+            progressKey: opts.progressKey,
+            polls,
+            waitedSecs,
+            mime,
         });
     }
     return { buffer, mime, id, waitedSecs, polls } as HordeImageResult;

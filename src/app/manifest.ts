@@ -1,8 +1,8 @@
 import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
-    const name = 'AI Personality Story';
-    const short_name = 'AI Story';
+    const name = 'Synchronauts';
+    const short_name = 'Synchronauts';
     const description =
         '会話からMBTIを推定し、あなたの物語を生成する対話型Webアプリ';
     const start_url = '/';

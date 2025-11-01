@@ -14,6 +14,9 @@ export default function ChatPage() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [loading, setLoading] = useState(false);
     const [done, setDone] = useState(false);
+    const [currentQuestion, setCurrentQuestion] = useState<string>(
+        'こんにちは。まずは最近の過ごし方について教えてください（例：休日の過ごし方）。'
+    );
     const bottomRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -37,6 +40,22 @@ export default function ChatPage() {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, loading]);
 
+    // Seed the initial guidance as an assistant message bubble
+    useEffect(() => {
+        if (sessionId && messages.length === 0) {
+            const now = new Date().toISOString();
+            const init: Message = {
+                id: crypto.randomUUID(),
+                role: 'assistant',
+                content:
+                    '質問：こんにちは。まずは最近の過ごし方について教えてください（例：休日の過ごし方）。',
+                createdAt: now,
+            };
+            setMessages([init]);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sessionId]);
+
     const onSend = async (text: string) => {
         if (!sessionId) return;
         setLoading(true);
@@ -49,12 +68,25 @@ export default function ChatPage() {
         };
         setMessages((prev) => [...prev, optimistic]);
         try {
-            const res = await api.sendMessage(sessionId, text);
-            setMessages((prev) => [
-                ...prev,
-                ...res.messages.filter((m) => m.role === 'assistant'),
-            ]);
+            const res = await api.sendMessage(sessionId, text, currentQuestion);
+            setMessages((prev) => {
+                const next = [
+                    ...prev,
+                    ...res.messages.filter((m) => m.role === 'assistant'),
+                ];
+                if (res.llmFallback) {
+                    const now2 = new Date().toISOString();
+                    next.push({
+                        id: crypto.randomUUID(),
+                        role: 'assistant',
+                        content: `※フォールバック応答（LLM: ${res.llmProvider || 'unknown'}）`,
+                        createdAt: now2,
+                    });
+                }
+                return next;
+            });
             setDone(Boolean(res.done));
+            if (res.nextQuestion) setCurrentQuestion(res.nextQuestion);
         } finally {
             setLoading(false);
         }
@@ -85,7 +117,7 @@ export default function ChatPage() {
                                         </Link>
                                     ) : (
                                         <span className="text-xs text-black/60 dark:text-white/60">
-                                            最大5往復で終了
+                                            最大12往復で終了
                                         </span>
                                     )}
                                 </div>
@@ -118,11 +150,6 @@ export default function ChatPage() {
                                 </div>
                             )}
                             <div className="flex flex-col gap-4 max-h-[60vh] overflow-auto pr-1 transition-opacity">
-                                {messages.length === 0 && (
-                                    <div className="text-sm text-black/60 dark:text-white/60">
-                                        こんにちは。まずは最近の過ごし方について教えてください（例：休日の過ごし方）。
-                                    </div>
-                                )}
                                 {messages.map((m) => (
                                     <div key={m.id} className="animate-fade-in">
                                         <MessageBubble message={m} />

@@ -27,14 +27,25 @@ export const api = {
     },
     async sendMessage(
         sessionId: string,
-        content: string
-    ): Promise<{ messages: Message[]; done?: boolean }> {
+        content: string,
+        question?: string
+    ): Promise<{
+        messages: Message[];
+        done?: boolean;
+        nextQuestion?: string;
+        llmProvider?: string;
+        llmFallback?: boolean;
+    }> {
         try {
             return await http(
                 `/api/chat?sessionId=${encodeURIComponent(sessionId)}`,
                 {
                     method: 'POST',
-                    body: JSON.stringify({ content }),
+                    body: JSON.stringify(
+                        question && question.trim()
+                            ? { content, question }
+                            : { content }
+                    ),
                 }
             );
         } catch {

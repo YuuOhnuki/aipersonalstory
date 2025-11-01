@@ -8,6 +8,67 @@ function pick<T>(arr: T[], n: number) {
     return arr[n % arr.length];
 }
 
+export function deriveAnimalFromPersonality(
+    mbti: string,
+    bigFive?: {
+        openness?: number;
+        conscientiousness?: number;
+        extraversion?: number;
+        agreeableness?: number;
+        neuroticism?: number;
+    },
+    featuresText?: string
+) {
+    const type = (mbti || '').toUpperCase().slice(0, 4);
+    const seed = hash(
+        type + ':' + JSON.stringify(bigFive || {}) + ':' + (featuresText || '')
+    );
+    const bf = bigFive || {};
+    const entries = Object.entries({
+        Openness: bf.openness ?? 0,
+        Conscientiousness: bf.conscientiousness ?? 0,
+        Extraversion: bf.extraversion ?? 0,
+        Agreeableness: bf.agreeableness ?? 0,
+        Neuroticism: bf.neuroticism ?? 0,
+    }).sort((a, b) => (b[1] as number) - (a[1] as number));
+    const top = entries[0]?.[0] || '';
+
+    // Heuristic mapping
+    const byBigFive: Record<string, string[]> = {
+        Openness: ['fox', 'owl', 'cat'],
+        Conscientiousness: ['beaver', 'ant', 'tortoise'],
+        Extraversion: ['dog', 'parrot', 'dolphin'],
+        Agreeableness: ['deer', 'rabbit', 'dolphin'],
+        Neuroticism: ['hedgehog', 'rabbit', 'cat'],
+    };
+    const byMBTI: Record<string, string[]> = {
+        E: ['dog', 'parrot', 'lion'],
+        I: ['cat', 'owl', 'fox'],
+        N: ['fox', 'owl', 'butterfly'],
+        S: ['deer', 'beaver', 'tortoise'],
+        T: ['wolf', 'hawk', 'bear'],
+        F: ['rabbit', 'deer', 'dolphin'],
+        J: ['beaver', 'ant', 'tortoise'],
+        P: ['fox', 'cat', 'monkey'],
+    };
+
+    const candidates: string[] = [];
+    if (top && byBigFive[top]) candidates.push(...byBigFive[top]);
+    if (type[0] && byMBTI[type[0]]) candidates.push(...byMBTI[type[0]]);
+    if (type[1] && byMBTI[type[1]]) candidates.push(...byMBTI[type[1]]);
+    if (type[2] && byMBTI[type[2]]) candidates.push(...byMBTI[type[2]]);
+    if (type[3] && byMBTI[type[3]]) candidates.push(...byMBTI[type[3]]);
+    const animal = candidates.length
+        ? pick(candidates, seed)
+        : pick(['cat', 'dog', 'fox', 'deer'], seed);
+
+    // Style hints
+    const style =
+        'deformed, cute mascot style, clean vector aesthetics, soft gradients, pastel palette, centered composition, white background, high detail, friendly eyes';
+
+    return { animal, style };
+}
+
 export function generateAvatarSVG(type: string, seedText = '') {
     const seed = hash(type + ':' + seedText);
     const palette = [

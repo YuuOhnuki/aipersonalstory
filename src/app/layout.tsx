@@ -24,21 +24,21 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 export const metadata: Metadata = {
     metadataBase: new URL(siteUrl),
     title: {
-        default: 'AI Personality Story',
-        template: '%s | AI Personality Story',
+        default: 'Synchronauts',
+        template: '%s | Synchronauts',
     },
     description: '会話からMBTIを推定し、あなたの物語を生成する対話型Webアプリ',
-    applicationName: 'AI Personality Story',
+    applicationName: 'Synchronauts',
     openGraph: {
         type: 'website',
         url: siteUrl,
-        siteName: 'AI Personality Story',
-        title: 'AI Personality Story',
+        siteName: 'Synchronauts',
+        title: 'Synchronauts',
         description:
             '会話からMBTIを推定し、あなたの物語を生成する対話型Webアプリ',
         images: [
             {
-                url: '/api/image/avatar?type=INFP&title=AI%20Personality%20Story',
+                url: '/api/image/avatar?type=INFP&title=Synchronauts',
                 width: 800,
                 height: 800,
             },
@@ -47,10 +47,10 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'AI Personality Story',
+        title: 'Synchronauts',
         description:
             '会話からMBTIを推定し、あなたの物語を生成する対話型Webアプリ',
-        images: ['/api/image/avatar?type=INFP&title=AI%20Personality%20Story'],
+        images: ['/api/image/avatar?type=INFP&title=Synchronauts'],
     },
     icons: {
         icon: '/favicon.ico',

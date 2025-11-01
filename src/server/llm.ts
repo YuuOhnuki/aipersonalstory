@@ -1,5 +1,13 @@
 // LLM provider adapter: Web API first (Gemini / Groq), then local @xenova/transformers as fallback.
 
+export type ProviderName =
+    | 'gemini'
+    | 'groq'
+    | 'local'
+    | 'disabled'
+    | 'last_resort';
+export type GenMeta = { text: string; provider: ProviderName };
+
 let generationPipeline: any | null = null;
 let loadError: Error | null = null;
 
@@ -84,19 +92,19 @@ async function getLocalGenerator() {
     }
 }
 
-export async function generateText(
+export async function generateTextWithMeta(
     prompt: string,
     options?: { max_new_tokens?: number; temperature?: number }
-) {
+): Promise<GenMeta> {
     // Prefer web providers if configured
     const provider = (process.env.WEB_LLM_PROVIDER || '').toLowerCase();
     try {
         if (provider === 'gemini') {
             const t = await generateWithGemini(prompt, options);
-            if (t) return t;
+            if (t) return { text: t, provider: 'gemini' };
         } else if (provider === 'groq') {
             const t = await generateWithGroq(prompt, options);
-            if (t) return t;
+            if (t) return { text: t, provider: 'groq' };
         }
     } catch (e) {
         console.warn('[llm] web provider error:', e);
@@ -105,7 +113,7 @@ export async function generateText(
     // Local fallback (unless disabled)
     if (process.env.DISABLE_LOCAL_LLM === 'true') {
         const genericReply = '了解しました。もう少し詳しく教えてください。';
-        return genericReply;
+        return { text: genericReply, provider: 'disabled' };
     }
     const pipe = await getLocalGenerator();
     if (pipe) {
@@ -118,7 +126,7 @@ export async function generateText(
         const text: string = Array.isArray(out)
             ? (out[0]?.generated_text ?? '')
             : (out?.generated_text ?? String(out ?? ''));
-        return text;
+        return { text, provider: 'local' };
     }
 
     // Last-resort fallback
@@ -126,5 +134,16 @@ export async function generateText(
     const genericReply = '了解しました。もう少し詳しく教えてください。';
     const last =
         trimmed.split(/\n|。/).filter(Boolean).slice(-1)[0]?.trim() ?? '';
-    return last ? `${genericReply}` : genericReply;
+    return {
+        text: last ? `${genericReply}` : genericReply,
+        provider: 'last_resort',
+    };
+}
+
+export async function generateText(
+    prompt: string,
+    options?: { max_new_tokens?: number; temperature?: number }
+): Promise<string> {
+    const { text } = await generateTextWithMeta(prompt, options);
+    return text;
 }

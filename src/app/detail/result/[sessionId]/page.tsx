@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import type React from 'react';
 import { redirect } from 'next/navigation';
 import { dbGetDetailResultByAny } from '@/server/db';
 import { Section } from '@/components/ui/Section';
@@ -134,9 +135,6 @@ export default async function DetailResultPage({
                                         imgClassName="h-24 w-24 rounded-2xl border border-black/10 dark:border-white/10 shadow-sm object-cover"
                                         progressKey={avatarKey}
                                     />
-                                </div>
-                                <div className="text-center text-[11px] text-black/50 dark:text-white/50">
-                                    画像生成中の場合、数秒お待ちください…
                                 </div>
                                 <div className="flex items-baseline gap-3">
                                     <span className="text-3xl font-semibold tracking-tight">
@@ -417,6 +415,97 @@ export default async function DetailResultPage({
                                         const adviceText = String(
                                             row.advice || ''
                                         );
+                                        const renderFormatted = (
+                                            text: string
+                                        ) => {
+                                            const lines = String(
+                                                text || ''
+                                            ).split(/\r?\n/);
+                                            const items: string[] = [];
+                                            const blocks: React.ReactNode[] =
+                                                [];
+                                            const flushList = () => {
+                                                if (items.length) {
+                                                    blocks.push(
+                                                        <ul
+                                                            className="list-disc pl-6 space-y-1"
+                                                            key={`ul-${blocks.length}`}
+                                                        >
+                                                            {items.map(
+                                                                (t, i) => (
+                                                                    <li key={i}>
+                                                                        {renderInline(
+                                                                            t
+                                                                        )}
+                                                                    </li>
+                                                                )
+                                                            )}
+                                                        </ul>
+                                                    );
+                                                    items.length = 0;
+                                                }
+                                            };
+                                            const renderInline = (
+                                                s: string
+                                            ) => {
+                                                const parts: React.ReactNode[] =
+                                                    [];
+                                                const boldRe =
+                                                    /\*\*([^*]+)\*\*/g;
+                                                let lastIndex = 0;
+                                                let m: RegExpExecArray | null;
+                                                while ((m = boldRe.exec(s))) {
+                                                    const before = s.slice(
+                                                        lastIndex,
+                                                        m.index
+                                                    );
+                                                    if (before)
+                                                        parts.push(before);
+                                                    parts.push(
+                                                        <strong
+                                                            key={`${m.index}-${m[1]}`}
+                                                        >
+                                                            {m[1]}
+                                                        </strong>
+                                                    );
+                                                    lastIndex =
+                                                        m.index + m[0].length;
+                                                }
+                                                const after =
+                                                    s.slice(lastIndex);
+                                                if (after) parts.push(after);
+                                                return <>{parts}</>;
+                                            };
+                                            for (const line of lines) {
+                                                const l = line.trimEnd();
+                                                if (/^[-•]\s+/.test(l)) {
+                                                    items.push(
+                                                        l.replace(
+                                                            /^[-•]\s+/,
+                                                            ''
+                                                        )
+                                                    );
+                                                } else if (l === '') {
+                                                    flushList();
+                                                } else {
+                                                    flushList();
+                                                    blocks.push(
+                                                        <p
+                                                            className="mb-2"
+                                                            key={`p-${blocks.length}`}
+                                                        >
+                                                            {renderInline(l)}
+                                                        </p>
+                                                    );
+                                                }
+                                            }
+                                            flushList();
+                                            return (
+                                                <div className="space-y-2">
+                                                    {blocks}
+                                                </div>
+                                            );
+                                        };
                                         const pick = (label: string) => {
                                             // Match section labeled like 【ラベル】 ... until next header separated by >=1 blank line(s)
                                             const re = new RegExp(
@@ -430,36 +519,23 @@ export default async function DetailResultPage({
                                         const e = pick('科学的根拠');
                                         return (
                                             <>
-                                                {!a &&
-                                                    !c &&
-                                                    !e &&
-                                                    adviceText && (
-                                                        <div className="space-y-2">
-                                                            <div className="text-sm font-semibold">
-                                                                日常で役立つアドバイス
-                                                            </div>
-                                                            <div className="text-sm whitespace-pre-wrap text-black/70 dark:text-white/70">
-                                                                {adviceText}
-                                                            </div>
-                                                        </div>
-                                                    )}
                                                 {a && (
                                                     <div className="space-y-2">
                                                         <div className="text-sm font-semibold">
                                                             日常で役立つアドバイス
                                                         </div>
-                                                        <div className="text-sm whitespace-pre-wrap text-black/70 dark:text-white/70">
-                                                            {a}
+                                                        <div className="text-sm text-black/70 dark:text-white/70">
+                                                            {renderFormatted(a)}
                                                         </div>
                                                     </div>
                                                 )}
                                                 {c && (
                                                     <div className="space-y-2">
                                                         <div className="text-sm font-semibold">
-                                                            あるある
+                                                            共感できる場面
                                                         </div>
-                                                        <div className="text-sm whitespace-pre-wrap text-black/70 dark:text-white/70">
-                                                            {c}
+                                                        <div className="text-sm text-black/70 dark:text-white/70">
+                                                            {renderFormatted(c)}
                                                         </div>
                                                     </div>
                                                 )}
@@ -468,8 +544,8 @@ export default async function DetailResultPage({
                                                         <div className="text-sm font-semibold">
                                                             科学的根拠
                                                         </div>
-                                                        <div className="text-sm whitespace-pre-wrap text-black/70 dark:text-white/70">
-                                                            {e}
+                                                        <div className="text-sm text-black/70 dark:text-white/70">
+                                                            {renderFormatted(e)}
                                                         </div>
                                                     </div>
                                                 )}
@@ -485,9 +561,6 @@ export default async function DetailResultPage({
                                             imgClassName="w-full object-cover"
                                             progressKey={sceneKey}
                                         />
-                                    </div>
-                                    <div className="text-center text-[11px] text-black/50 dark:text-white/50">
-                                        画像生成中の場合、数秒お待ちください…
                                     </div>
                                 </div>
                             </div>

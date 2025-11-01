@@ -9,6 +9,7 @@ type Props = {
     skeletonClassName?: string;
     imgClassName?: string;
     progressKey?: string;
+    showText?: boolean;
 };
 
 export default function ProgressiveImage({
@@ -18,6 +19,7 @@ export default function ProgressiveImage({
     skeletonClassName,
     imgClassName,
     progressKey,
+    showText = false,
 }: Props) {
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState<string | null>(null);
@@ -31,6 +33,9 @@ export default function ProgressiveImage({
         setLoading(true);
         setError(null);
         setLogs(['画像リクエスト開始']);
+        try {
+            console.debug('[ProgressiveImage] start', { src, progressKey });
+        } catch {}
         startRef.current = Date.now();
         timerRef.current = setInterval(() => {
             setElapsed(Math.floor((Date.now() - startRef.current) / 1000));
@@ -45,6 +50,13 @@ export default function ProgressiveImage({
                     );
                     if (res.ok) {
                         const p = await res.json();
+                        try {
+                            console.debug('[ProgressiveImage] progress', {
+                                progressKey,
+                                status: p?.status,
+                                polls: p?.polls,
+                            });
+                        } catch {}
                         if (p?.status === 'submitted') {
                             setLogs((l) => [
                                 ...l,
@@ -80,6 +92,13 @@ export default function ProgressiveImage({
             ...l,
             `完了: ${Math.floor((Date.now() - startRef.current) / 1000)}s`,
         ]);
+        try {
+            console.debug('[ProgressiveImage] done', {
+                src,
+                progressKey,
+                elapsed: Math.floor((Date.now() - startRef.current) / 1000),
+            });
+        } catch {}
         if (timerRef.current) clearInterval(timerRef.current);
         if (pollRef.current) clearInterval(pollRef.current);
     };
@@ -87,6 +106,9 @@ export default function ProgressiveImage({
         setLoading(false);
         setError('画像の取得に失敗しました');
         setLogs((l) => [...l, 'エラー発生']);
+        try {
+            console.debug('[ProgressiveImage] error', { src, progressKey });
+        } catch {}
         if (timerRef.current) clearInterval(timerRef.current);
         if (pollRef.current) clearInterval(pollRef.current);
     };
@@ -108,9 +130,11 @@ export default function ProgressiveImage({
                     className={`relative overflow-hidden rounded-2xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 ${skeletonClassName || ''}`}
                 >
                     <div className="animate-pulse w-full h-full" />
-                    <div className="absolute inset-x-2 bottom-2 text-[11px] text-black/60 dark:text-white/60 space-y-0.5">
-                        <div>画像生成中... {elapsed}s</div>
-                    </div>
+                    {showText && (
+                        <div className="absolute inset-x-2 bottom-2 text-[11px] text-black/60 dark:text-white/60 space-y-0.5">
+                            <div>画像生成中...</div>
+                        </div>
+                    )}
                 </div>
             )}
             <img

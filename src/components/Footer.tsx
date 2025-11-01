@@ -5,7 +5,7 @@ export default function Footer() {
                 <p>
                     このアプリは自己理解支援を目的としたエンタメコンテンツであり、医療・心理診断ではありません。
                 </p>
-                <p>© {new Date().getFullYear()} AI Personality Story</p>
+                <p> {new Date().getFullYear()} Synchronauts</p>
             </div>
         </footer>
     );

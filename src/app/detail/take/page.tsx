@@ -24,6 +24,185 @@ export default function DetailTakePage() {
     // 結果は同一ページで表示せず、結果ページへ遷移する
     const [sessionId, setSessionId] = useState<string | null>(null);
 
+    const MBTI_MAP: Record<
+        string,
+        { axis: 'E/I' | 'S/N' | 'T/F' | 'J/P'; dir: 1 | -1; weight: number }
+    > = {
+        A1: { axis: 'E/I', dir: +1, weight: 1.0 },
+        A2: { axis: 'S/N', dir: -1, weight: 1.0 },
+        A3: { axis: 'T/F', dir: +1, weight: 1.0 },
+        A4: { axis: 'J/P', dir: +1, weight: 1.0 },
+        A5: { axis: 'E/I', dir: +1, weight: 0.8 },
+        A6: { axis: 'S/N', dir: +1, weight: 0.8 },
+        A7: { axis: 'T/F', dir: +1, weight: 0.8 },
+        A8: { axis: 'J/P', dir: +1, weight: 0.8 },
+    };
+    const BIGFIVE_AXES: Record<
+        string,
+        | 'openness'
+        | 'conscientiousness'
+        | 'extraversion'
+        | 'agreeableness'
+        | 'neuroticism'
+        | undefined
+    > = {
+        B9: 'openness',
+        B10: 'openness',
+        B11: 'openness',
+        B12: 'openness',
+        B13: 'conscientiousness',
+        B14: 'conscientiousness',
+        B15: 'conscientiousness',
+        B16: 'conscientiousness',
+        B17: 'extraversion',
+        B18: 'extraversion',
+        B19: 'extraversion',
+        B20: 'extraversion',
+        B21: 'agreeableness',
+        B22: 'agreeableness',
+        B23: 'agreeableness',
+        B24: 'agreeableness',
+        B25: 'neuroticism',
+        B26: 'neuroticism',
+        B27: 'neuroticism',
+        B28: 'neuroticism',
+    };
+
+    const debugState = useMemo(() => {
+        const mbtiScores: Record<'E/I' | 'S/N' | 'T/F' | 'J/P', number> = {
+            'E/I': 0,
+            'S/N': 0,
+            'T/F': 0,
+            'J/P': 0,
+        };
+        const mbtiWeights: Record<'E/I' | 'S/N' | 'T/F' | 'J/P', number> = {
+            'E/I': 0,
+            'S/N': 0,
+            'T/F': 0,
+            'J/P': 0,
+        };
+        const mbtiDetails: Array<{
+            id: string;
+            axis: string;
+            score: number;
+            contrib: number;
+            weight: number;
+        }> = [];
+        Object.values(answers).forEach((a) => {
+            const meta = MBTI_MAP[a.questionId];
+            if (meta && typeof a.score === 'number') {
+                const v = ((a.score - 3) / 2) * meta.dir;
+                mbtiScores[meta.axis] += v * meta.weight;
+                mbtiWeights[meta.axis] += meta.weight;
+                mbtiDetails.push({
+                    id: a.questionId,
+                    axis: meta.axis,
+                    score: a.score,
+                    contrib: v,
+                    weight: meta.weight,
+                });
+            }
+        });
+        const ei =
+            (mbtiWeights['E/I'] ? mbtiScores['E/I'] / mbtiWeights['E/I'] : 0) >=
+            0
+                ? 'E'
+                : 'I';
+        const sn =
+            (mbtiWeights['S/N'] ? mbtiScores['S/N'] / mbtiWeights['S/N'] : 0) >=
+            0
+                ? 'S'
+                : 'N';
+        const tf =
+            (mbtiWeights['T/F'] ? mbtiScores['T/F'] / mbtiWeights['T/F'] : 0) >=
+            0
+                ? 'T'
+                : 'F';
+        const jp =
+            (mbtiWeights['J/P'] ? mbtiScores['J/P'] / mbtiWeights['J/P'] : 0) >=
+            0
+                ? 'J'
+                : 'P';
+        const mbtiType = `${ei}${sn}${tf}${jp}`;
+
+        const bigSum: any = {
+            openness: 0,
+            conscientiousness: 0,
+            extraversion: 0,
+            agreeableness: 0,
+            neuroticism: 0,
+        };
+        const bigCount: any = {
+            openness: 0,
+            conscientiousness: 0,
+            extraversion: 0,
+            agreeableness: 0,
+            neuroticism: 0,
+        };
+        const bigDetails: Array<{ id: string; axis: string; score: number }> =
+            [];
+        Object.values(answers).forEach((a) => {
+            const ax = BIGFIVE_AXES[a.questionId];
+            if (ax && typeof a.score === 'number') {
+                bigSum[ax] += a.score;
+                bigCount[ax] += 1;
+                bigDetails.push({ id: a.questionId, axis: ax, score: a.score });
+            }
+        });
+        const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
+        const bigFive = {
+            openness: Math.round(
+                clamp01((bigSum.openness / (bigCount.openness || 1) - 1) / 4) *
+                    100
+            ),
+            conscientiousness: Math.round(
+                clamp01(
+                    (bigSum.conscientiousness /
+                        (bigCount.conscientiousness || 1) -
+                        1) /
+                        4
+                ) * 100
+            ),
+            extraversion: Math.round(
+                clamp01(
+                    (bigSum.extraversion / (bigCount.extraversion || 1) - 1) / 4
+                ) * 100
+            ),
+            agreeableness: Math.round(
+                clamp01(
+                    (bigSum.agreeableness / (bigCount.agreeableness || 1) - 1) /
+                        4
+                ) * 100
+            ),
+            neuroticism: Math.round(
+                clamp01(
+                    (bigSum.neuroticism / (bigCount.neuroticism || 1) - 1) / 4
+                ) * 100
+            ),
+        };
+        return {
+            mbtiScores,
+            mbtiWeights,
+            mbtiDetails,
+            mbtiType,
+            bigFive,
+            bigDetails,
+        };
+    }, [answers]);
+
+    const fillRandom = () => {
+        const next: Record<string, Answer> = { ...answers };
+        for (const q of questions) {
+            if (q.type === 'scale') {
+                const v = 1 + Math.floor(Math.random() * 5);
+                next[q.id] = { questionId: q.id, score: v };
+            } else if (q.type === 'text') {
+                next[q.id] = { questionId: q.id, text: 'テスト入力' };
+            }
+        }
+        setAnswers(next);
+    };
+
     useEffect(() => {
         fetch('/api/questions/detail')
             .then((r) => r.json())
@@ -73,6 +252,7 @@ export default function DetailTakePage() {
         }
     };
 
+    const DEBUG = process.env.NEXT_PUBLIC_DEBUG === 'true';
     return (
         <div className="pb-24">
             {/* Sticky progress */}
@@ -97,12 +277,132 @@ export default function DetailTakePage() {
                                 <h1 className="text-lg font-semibold">
                                     詳細診断
                                 </h1>
-                                <div className="text-xs text-black/60 dark:text-white/60">
-                                    目安 5〜10分
+                                <div className="flex items-center gap-2">
+                                    <div className="text-xs text-black/60 dark:text-white/60">
+                                        目安 5〜10分
+                                    </div>
+                                    {DEBUG && (
+                                        <Button
+                                            variant="secondary"
+                                            size="sm"
+                                            onClick={fillRandom}
+                                        >
+                                            ランダムで回答
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
                         </CardBody>
                     </Card>
+                    {DEBUG && (
+                        <Card>
+                            <CardBody>
+                                <div className="space-y-2 text-[11px]">
+                                    <div className="font-medium">
+                                        デバッグ: 回答の寄与
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        <span className="px-2 py-0.5 rounded-full bg-white/70 dark:bg-white/10 border border-black/10 dark:border-white/10">
+                                            MBTI: {debugState.mbtiType}
+                                        </span>
+                                        {(
+                                            [
+                                                'E/I',
+                                                'S/N',
+                                                'T/F',
+                                                'J/P',
+                                            ] as const
+                                        ).map((k) => (
+                                            <span
+                                                key={k}
+                                                className="px-2 py-0.5 rounded-full bg-white/70 dark:bg-white/10 border border-black/10 dark:border-white/10"
+                                            >
+                                                {k}:
+                                                {String(
+                                                    debugState.mbtiScores[
+                                                        k
+                                                    ].toFixed(2)
+                                                )}
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        {Object.entries(debugState.bigFive).map(
+                                            ([k, v]) => (
+                                                <span
+                                                    key={k}
+                                                    className="px-2 py-0.5 rounded-full bg-white/70 dark:bg-white/10 border border-black/10 dark:border-white/10"
+                                                >
+                                                    {k}:{String(v)}
+                                                </span>
+                                            )
+                                        )}
+                                    </div>
+                                    <div className="grid md:grid-cols-2 gap-2">
+                                        <div>
+                                            <div className="opacity-70 mb-1">
+                                                MBTIへの寄与
+                                            </div>
+                                            <div className="space-y-1">
+                                                {debugState.mbtiDetails.map(
+                                                    (d) => (
+                                                        <div
+                                                            key={d.id}
+                                                            className="rounded border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/10 px-2 py-1"
+                                                        >
+                                                            <span className="mr-2">
+                                                                {d.id}
+                                                            </span>
+                                                            <span className="mr-2">
+                                                                {d.axis}
+                                                            </span>
+                                                            <span className="mr-2">
+                                                                score:{d.score}
+                                                            </span>
+                                                            <span className="mr-2">
+                                                                Δ
+                                                                {d.contrib.toFixed(
+                                                                    2
+                                                                )}
+                                                            </span>
+                                                            <span className="opacity-70">
+                                                                w:{d.weight}
+                                                            </span>
+                                                        </div>
+                                                    )
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div className="opacity-70 mb-1">
+                                                Big Fiveへの寄与
+                                            </div>
+                                            <div className="space-y-1">
+                                                {debugState.bigDetails.map(
+                                                    (d) => (
+                                                        <div
+                                                            key={d.id}
+                                                            className="rounded border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/10 px-2 py-1"
+                                                        >
+                                                            <span className="mr-2">
+                                                                {d.id}
+                                                            </span>
+                                                            <span className="mr-2">
+                                                                {d.axis}
+                                                            </span>
+                                                            <span className="opacity-70">
+                                                                score:{d.score}
+                                                            </span>
+                                                        </div>
+                                                    )
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardBody>
+                        </Card>
+                    )}
                     <Card>
                         <CardBody>
                             <div className="space-y-10">

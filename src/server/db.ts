@@ -292,6 +292,20 @@ export async function dbGetMbtiResultByAny(idOrSession: string) {
     );
 }
 
+export async function dbUpdateMbtiImages(
+    idOrSession: string,
+    urls: { avatar_url?: string | null; scene_url?: string | null }
+) {
+    const p = await getPool();
+    if (!p) return;
+    const row = await dbGetMbtiResultByAny(idOrSession);
+    if (!row) return;
+    await p.query(
+        `UPDATE mbti_result SET avatar_url = COALESCE($2, avatar_url), scene_url = COALESCE($3, scene_url) WHERE session_id = $1`,
+        [row.session_id, urls.avatar_url ?? null, urls.scene_url ?? null]
+    );
+}
+
 export async function dbGetDetailResult(sessionId: string) {
     const p = await getPool();
     if (!p) return null;
@@ -316,6 +330,20 @@ export async function dbGetDetailResultByAny(idOrSession: string) {
     return (
         (await dbGetDetailResultById(idOrSession)) ||
         (await dbGetDetailResult(idOrSession))
+    );
+}
+
+export async function dbUpdateDetailImages(
+    idOrSession: string,
+    urls: { avatar_url?: string | null; scene_url?: string | null }
+) {
+    const p = await getPool();
+    if (!p) return;
+    const row = await dbGetDetailResultByAny(idOrSession);
+    if (!row) return;
+    await p.query(
+        `UPDATE detail_result SET avatar_url = COALESCE($2, avatar_url), scene_url = COALESCE($3, scene_url) WHERE session_id = $1`,
+        [row.session_id, urls.avatar_url ?? null, urls.scene_url ?? null]
     );
 }
 
