@@ -20,6 +20,10 @@ const geistMono = Geist_Mono({
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+const googleVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
+const msVerification = process.env.NEXT_PUBLIC_MS_SITE_VERIFICATION;
+const twitterSite = process.env.NEXT_PUBLIC_TWITTER_SITE;
+const twitterCreator = process.env.NEXT_PUBLIC_TWITTER_CREATOR;
 
 export const metadata: Metadata = {
     metadataBase: new URL(siteUrl),
@@ -29,6 +33,32 @@ export const metadata: Metadata = {
     },
     description: '会話からMBTIを推定し、あなたの物語を生成する対話型Webアプリ',
     applicationName: 'Synchronauts',
+    keywords: [
+        'Synchronauts',
+        'MBTI',
+        '性格診断',
+        'AI',
+        'AIチャット',
+        '物語生成',
+        'パーソナライズ',
+        '自己分析',
+        '日本語',
+        'ウェブアプリ',
+    ],
+    alternates: {
+        canonical: '/',
+    },
+    robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+            index: true,
+            follow: true,
+            'max-video-preview': -1,
+            'max-image-preview': 'large',
+            'max-snippet': -1,
+        },
+    },
     openGraph: {
         type: 'website',
         url: siteUrl,
@@ -51,10 +81,18 @@ export const metadata: Metadata = {
         description:
             '会話からMBTIを推定し、あなたの物語を生成する対話型Webアプリ',
         images: ['/api/image/avatar?type=INFP&title=Synchronauts'],
+        site: twitterSite,
+        creator: twitterCreator,
     },
     icons: {
         icon: '/favicon.ico',
         apple: '/apple-touch-icon.png',
+    },
+    verification: {
+        google: googleVerification,
+        other: msVerification
+            ? { 'msvalidate.01': msVerification }
+            : undefined,
     },
 };
 
