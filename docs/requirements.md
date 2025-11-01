@@ -37,7 +37,7 @@
 | **プライバシー**     | 同意文を明示。「会話内容は診断目的以外に使用しません。」                    |
 | **多言語対応**       | MVPでは日本語のみ。                                                         |
 | **アクセシビリティ** | シンプルなテキストUI、PC・スマホ対応。                                      |
-| **ライセンス・法務** | 生成AIは商用利用可能なオープンモデル（例：Mistral 7B / Phi-3-mini）を使用。 |
+| **ライセンス・法務** | 外部有料API不要のローカル推論（@xenova/transformers, 例: Qwen2.5-0.5B）を使用 |
 
 ---
 
@@ -46,22 +46,26 @@
 ```
 [User Browser]
      ↓
-(Next.js Frontend)
+(Next.js App Router UI)
      ↓ (API fetch)
-[FastAPI Backend]
-     ├── MBTI質問制御
-     ├── 会話ログ保持(SQLite)
-     ├── LLM推論(Mistral 7B or Phi-3-mini via Ollama)
-     └── ストーリー生成
+[Next.js API Routes]
+     ├── セッション管理（/api/session）
+     ├── 簡易診断チャット（/api/chat）
+     ├── 詳細設問取得（/api/questions/detail）
+     ├── 詳細診断・結果生成（/api/diagnose/detail）
+     └── 結果取得（/api/result）
+
+[ローカル推論]
+  └── @xenova/transformers（既定: Xenova/Qwen2.5-0.5B-Instruct）
 ```
 
 | コンポーネント | 技術                                  | 役割                          |
 | -------------- | ------------------------------------- | ----------------------------- |
 | フロント       | Next.js + TailwindCSS                 | チャットUI、結果画面          |
-| バックエンド   | FastAPI                               | LLM呼び出し・MBTI判定ロジック |
-| AIモデル       | Mistral 7B Instruct（Ollama経由）     | 対話＋生成                    |
-| DB             | SQLite                                | 会話履歴・MBTI結果保存        |
-| デプロイ       | Render / Hugging Face Spaces / Vercel | 無料枠で動作                  |
+| バックエンド   | Next.js API Routes                    | MBTI/Big Five 推定・生成処理  |
+| AIモデル       | @xenova/transformers（Qwen2.5-0.5B等）| ローカルでの対話＋生成        |
+| DB             | SQLite（better-sqlite3）              | 会話履歴・結果保存（任意）     |
+| デプロイ       | Vercel 等（Node ランタイム必須）      | SQLiteなしでも動作可           |
 
 ---
 

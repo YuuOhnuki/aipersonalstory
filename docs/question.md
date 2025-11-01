@@ -4,7 +4,7 @@
 
 本モジュールは、ユーザーの回答から **MBTIタイプ（16分類）** と **Big Fiveパーソナリティ特性（OCEAN）** を推定し、
 その結果をもとに **性格を反映したオリジナルストーリー** を生成することを目的とする。
-生成AIには無料で利用可能な **Google Gemini 1.5 Flash** または **OpenAI GPT-4o mini（無料枠）** を使用可能。
+生成AIは外部APIを使わず、ローカルで動作する **@xenova/transformers（既定: Xenova/Qwen2.5-0.5B-Instruct）** を使用。
 
 ---
 
@@ -138,10 +138,9 @@ AIに次のプロンプトを渡す：
 
 ## 🧠 生成AI利用ポリシー
 
-- **無料モデル候補:**
-    - Google Gemini 1.5 Flash（無料API可）
-    - OpenAI GPT-4o mini（ChatGPT free plan対応）
-    - Hugging Face Hub上の `distilbert-base-uncased` + 独自分類層（自前モデル）
+- **ローカルモデル:**
+    - @xenova/transformers 経由の `Xenova/Qwen2.5-0.5B-Instruct`（既定）
+    - 環境変数 `LLM_MODEL` で差し替え可能
 
 - **データ保持:** 匿名・非個人特定
 - **倫理:** 臨床心理診断・医療用途ではない旨を明記
@@ -150,10 +149,10 @@ AIに次のプロンプトを渡す：
 
 ## 📦 コーディング時指示
 
-- 入力UI：React + Next.js or Vueでフォーム実装（30問）
-- 回答データを`/api/diagnosis`にPOST
-- サーバー側（FastAPIなど）でスコア計算
-- AI推論エンドポイント `/api/generate-story` にJSONを送信
+- 入力UI：React + Next.js でフォーム実装（30問）
+- 設問は `GET /api/questions/detail` から取得
+- 回答データを `POST /api/diagnose/detail?sessionId=...` に送信（MBTI/Big Five/ストーリーを一括生成）
+- サーバーは Next.js API Routes 上でローカル推論（@xenova/transformers）を実行
 - 出力をダッシュボードで可視化（レーダーチャート＋ストーリー表示）
 
 ---
@@ -161,5 +160,5 @@ AIに次のプロンプトを渡す：
 ## ✅ 想定MVP要件
 
 - 質問回答 → 診断結果算出 → 性格レポート生成 → ストーリー提示
-- 無料AIモデル（GPT-4o miniまたはGemini 1.5 Flash）を利用
-- フロント＋バックをクラウド無料枠（Vercel / Render / Hugging Face Spaces）で稼働可
+- ローカル推論（@xenova/transformers, 既定: Qwen2.5-0.5B-Instruct）を利用
+- Vercel等のNodeランタイムで稼働可（SQLiteは任意、なければインメモリ）
